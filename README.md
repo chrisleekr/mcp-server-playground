@@ -126,6 +126,16 @@ A comprehensive Model Context Protocol (MCP) server boilerplate built with TypeS
      - JSON Web Token (JWT) Signature Algorithm: RS256
    - Click on "Create"
 
+## Screenshots
+
+|                                           Metadata Discovery                                           |                                           Client Registration                                           |                                           Preparing Authorization                                           |
+| :----------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
+| ![Metadata Discovery](https://github.com/user-attachments/assets/eeb5ae6e-e48e-43d0-a923-5cc85228f3f1) | ![Client Registration](https://github.com/user-attachments/assets/bb0a4823-b603-4330-9ad6-47b5dba758a7) | ![Preparing Authorization](https://github.com/user-attachments/assets/41dfa521-04de-467f-8fd2-7dec792021b8) |
+
+|                                                   Authorization with 3rd party server                                                    |                       Request Authorization and acquire authorization code                        |                                  Token Request and Authentication Complete                                  |
+| :--------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
+| ![Request Authorization and acquire authorization code](https://github.com/user-attachments/assets/4aaf5162-805f-4772-b3fe-39d4e7cae157) | ![Token Request](https://github.com/user-attachments/assets/84a51bab-458f-4c3f-8f7d-34c5e8c7e2eb) | ![Authentication Complete](https://github.com/user-attachments/assets/b963a2e2-1308-4c7d-a9fa-86a8d493896d) |
+
 ## References
 
 - [Authorization](https://modelcontextprotocol.io/specification/draft/basic/authorization)
