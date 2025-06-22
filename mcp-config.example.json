@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "mcp-server-boilerplate-cursor": {
+      "type": "http",
+      "url": "http://0.0.0.0:3000/mcp"
+    },
+    "mcp-server-boilerplate-claude": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://0.0.0.0:3000/mcp",
+        "--allow-http",
+        "--transport",
+        "http-only",
+        "--debug"
+      ],
+      "env": {
+        "PATH": "~/.local/share/nvm/v22.16.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      }
+    }
+  }
+}

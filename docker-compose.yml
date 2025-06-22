@@ -1,0 +1,38 @@
+services:
+  valkey:
+    container_name: valkey
+    image: valkey/valkey:8.1-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - valkey-data:/data
+    networks:
+      - mcp-server-boilerplate
+    restart: unless-stopped
+    command: --save 60 1 --loglevel debug
+
+  mcp-server-boilerplate:
+    container_name: mcp-server-boilerplate
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - 3000:3000
+    networks:
+      - mcp-server-boilerplate
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+      - $MCP_CONFIG_TOOLS_PROJECT_PATH:$MCP_CONFIG_TOOLS_PROJECT_PATH
+    working_dir: /app
+    command: npm run dev
+
+volumes:
+  valkey-data:
+    driver: local
+
+networks:
+  mcp-server-boilerplate:
+    driver: bridge

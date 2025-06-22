@@ -1,0 +1,193 @@
+image: node:22.16.0-alpine
+
+stages:
+  - prepare
+  - test
+  - build
+  - security
+  - release
+
+.feature_branch: &feature_branch
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+
+.main_branch: &main_branch
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_MESSAGE =~ /^chore\(release\):/
+      when: never
+
+# Reusable configurations
+.cache_config: &cache_config
+  key:
+    files:
+      - package-lock.json
+    prefix: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - .npm/
+
+dependencies:
+  stage: prepare
+  interruptible: true
+  cache:
+    <<: *cache_config
+    policy: pull-push
+  script:
+    - npm ci --cache .npm --prefer-offline
+
+build:
+  stage: build
+  cache:
+    <<: *cache_config
+    policy: pull
+  script:
+    - npm run build
+  needs:
+    - dependencies
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 hour
+
+lint:
+  stage: test
+  interruptible: true
+  cache:
+    <<: *cache_config
+    policy: pull
+  needs:
+    - dependencies
+  <<: *feature_branch
+  script:
+    - npm run lint
+
+format:
+  stage: test
+  interruptible: true
+  cache:
+    <<: *cache_config
+    policy: pull
+  needs:
+    - dependencies
+  <<: *feature_branch
+  script:
+    - npm run format
+
+typecheck:
+  stage: test
+  interruptible: true
+  cache:
+    <<: *cache_config
+    policy: pull
+  needs:
+    - dependencies
+  <<: *feature_branch
+  script:
+    - npm run typecheck
+
+# test-unit:
+#   stage: test
+#   interruptible: true
+#   cache:
+#     <<: *cache_config
+#     policy: pull
+#   needs:
+#     - dependencies
+#   script:
+#     - npm run test -- --ci
+#   coverage: /All files[^\|]*\|[^\|]*\s+([\d\.]+)/
+#   artifacts:
+#     name: coverage
+#     when: always
+#     expire_in: 2 days
+#     paths:
+#       - coverage/
+#     reports:
+#       junit: coverage/jest-junit.xml
+
+# Publish in branch with dev tag (for testing)
+publish-dev-npm:
+  stage: release
+  interruptible: true
+  cache:
+    <<: *cache_config
+    policy: pull
+  needs:
+    - dependencies
+  <<: *feature_branch
+  script:
+    - echo "@chrislee:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
+    - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
+    - npm version prerelease --preid=dev-${CI_COMMIT_SHORT_SHA} --no-git-tag-version
+    - npm publish --tag dev-${CI_COMMIT_SHORT_SHA}
+
+publish-dev-docker:
+  stage: release
+  interruptible: true
+  needs:
+    - dependencies
+  <<: *feature_branch
+  image: docker:27-dind
+  services:
+    - name: docker:27-dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: '/certs'
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: '$DOCKER_TLS_CERTDIR/client'
+  # Set reference for this block
+  before_script: &before_script_docker
+    - apk add curl git jq
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker context create dind
+    - docker buildx create --driver docker-container --use dind --buildkitd-flags '--allow-insecure-entitlement network.host'
+  script:
+    - PACKAGE_VERSION=$(grep -m1 version package.json | cut -c 15- | rev | cut
+      -c 3- | rev)
+    - GIT_HASH=$(git rev-parse --short HEAD)
+    - docker buildx build --progress plain --platform linux/amd64,linux/arm64
+      --allow network.host --provenance false
+      --build-arg PACKAGE_VERSION=$PACKAGE_VERSION --build-arg GIT_HASH=$GIT_HASH
+      --build-arg NODE_ENV=production --target production --pull --tag
+      $CI_REGISTRY/chrisleekr/${CI_PROJECT_NAME}:dev-${CI_COMMIT_SHORT_SHA} --push .
+# Disabled to avoid releasing multiple repository.
+# semantic-release:
+#   stage: release
+#   <<: *main_branch
+#   needs:
+#     - build
+#   script:
+#     - apk add --no-cache git
+#     - npm install -g semantic-release @semantic-release/gitlab @semantic-release/npm @semantic-release/git @semantic-release/changelog
+#     - echo "@chrislee:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
+#     - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
+#     - semantic-release
+
+# publish-tag-docker:
+#   stage: release
+#   <<: *main_branch
+#   needs:
+#     - semantic-release
+#   image: docker:27-dind
+#   services:
+#     - name: docker:27-dind
+#       alias: docker
+#   variables:
+#     DOCKER_HOST: tcp://docker:2376
+#     DOCKER_TLS_CERTDIR: '/certs'
+#     DOCKER_TLS_VERIFY: 1
+#     DOCKER_CERT_PATH: '$DOCKER_TLS_CERTDIR/client'
+#   before_script: *before_script_docker
+#   script:
+#     - apk add --no-cache git
+#     - git pull origin main
+#     - PACKAGE_VERSION=$(grep -m1 version package.json | cut -c 15- | rev | cut
+#       -c 3- | rev)
+#     - GIT_HASH=$(git rev-parse --short HEAD)
+#     - docker buildx build --progress plain --platform linux/amd64,linux/arm64
+#       --allow network.host --provenance false
+#       --build-arg PACKAGE_VERSION=$PACKAGE_VERSION --build-arg GIT_HASH=$GIT_HASH
+#       --build-arg NODE_ENV=production --target production --pull --tag
+#       $CI_REGISTRY/chrisleekr/${CI_PROJECT_NAME}:${PACKAGE_VERSION} --push .

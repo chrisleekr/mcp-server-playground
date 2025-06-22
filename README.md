@@ -1,0 +1,136 @@
+# MCP Server Boilerplate
+
+A comprehensive Model Context Protocol (MCP) server boilerplate built with TypeScript and Streamable HTTP transport with an OAuth Proxy for 3rd party authorization servers like Auth0.
+
+## Features
+
+- MCP Server implementation: HTTP-Based Streamable transport using `@modelcontextprotocol/sdk` with HTTP transport, session management, and tool execution.
+- OAuth authentication/3rd party authorization: Implements an OAuth server for MCP clients to process 3rd party authorization servers like Auth0, providing Dynamic Application Registration for MCP server.
+- Storage: Provide storage for MCP server to store data like OAuth sessions, tokens, etc.
+- Built-in sample tools: `echo`, `system-time`, `project` for demonstration.
+
+## Why this project exists?
+
+- The Model Context Protocol spec [requires Dynamic Application Registration](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#dynamic-client-registration) because it provides a standardized way for MCP clients to automatically register with new servers and obtain OAuth client IDs without user interaction. The main reason for this mechanism is because MCP clients can't know all possible services in advance and manual registration would create significant effort for users and it is not scalable. If do not support Dynamic Application Registration, then MCP clients need to provide OAuth client ID and secret to the server, which is not secure and not scalable.
+- However, enabling Dynamic Application Registration (if supported) becomes a [security risk](https://github.com/auth0/docs/blob/master/articles/api-auth/dynamic-client-registration.md#enable-dynamic-registration) because the endpoint is a public endpoint that anyone can create OAuth clients. It can easily be abused, such as by flooding with unwanted client registrations. Hence, Auth0 has disabled Dynamic Application Registration
+- As a result, this project provides a way to enable Dynamic Application Registration for MCP server by using OAuth Proxy, but delegating authorization to 3rd party authorization server like Auth0, Github, Google, etc.
+
+## Endpoints
+
+| Endpoint                                    | Description                              |
+| ------------------------------------------- | ---------------------------------------- |
+| GET /ping                                   | Ping the server                          |
+| POST /mcp                                   | MCP protocol request with authentication |
+| DELETE /mcp                                 | Session termination                      |
+| GET /.well-known/oauth-authorization-server | OAuth authorization server metadata      |
+| GET /.well-known/oauth-protected-resource   | OAuth protected resources metadata       |
+| POST /oauth/register                        | Register a new MCP client                |
+| GET /oauth/authorize                        | Handle authorization request             |
+| POST /oauth/token                           | Handle token request                     |
+| POST /oauth/revoke                          | Handle token revocation                  |
+| GET /oauth/stats                            | Get OAuth service statistics             |
+| GET /oauth/auth0-callback                   | Handle Auth0 callback                    |
+
+## Getting Started
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone <your-repo>
+   cd mcp-server-boilerplate
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Set up the MCP server for local development
+
+   ```bash
+   npm run dev:setup
+   ```
+
+### Set up the MCP server for Cursor
+
+1. Create MCP configuration file for local build
+
+   Create a `.cursor/mcp.json` file in your project directory (for project-specific setup) or `~/.cursor/mcp.json` in your home directory (for global setup):
+
+   ```json
+   {
+     "mcpServers": {
+       "mcp-server-boilerplate-cursor": {
+         "type": "http",
+         "url": "http://localhost:3000/mcp"
+       }
+     }
+   }
+   ```
+
+### Use `npx @modelcontextprotocol/inspector` to test the MCP server
+
+1. Copy `mcp-config.example.json` to `mcp-config.json`
+
+2. Edit `mcp-config.json` to point to the correct MCP server
+
+3. Run the inspector
+
+   ```bash
+   npm run docker:run
+
+   # Then run the inspector
+   npx @modelcontextprotocol/inspector -y --config ./mcp-config.json --server mcp-server-boilerplate-cursor
+   ```
+
+   or
+
+   ```bash
+   npm run test:inspector
+   ```
+
+### Setup Auth0 for authorization
+
+1. Create a new application in Auth0
+
+   - Go to [Auth0 Dashboard](https://manage.auth0.com/)
+   - Click on "Applications"
+   - Click on "Create Application"
+     - Name: MCP Server Boilerplate
+     - Application Type: Regular Web Application
+   - Click on "Create"
+
+2. Set up the application
+
+   - Click on "Settings"
+   - Set the following settings:
+     - Allowed Callback URLs: `http://localhost:3000/oauth/auth0-callback`
+     - Allowed Web Origins: `http://localhost:3000`
+
+3. Create a new API
+
+   - Click on "APIs"
+   - Click on "Create API"
+     - Name: MCP Server Boilerplate
+     - Identifier: `urn:mcp-server-boilerplate`
+     - JSON Web Token (JWT) Profile: Auth0
+     - JSON Web Token (JWT) Signature Algorithm: RS256
+   - Click on "Create"
+
+## References
+
+- [Authorization](https://modelcontextprotocol.io/specification/draft/basic/authorization)
+- [Dynamic Application Registration](https://auth0.com/docs/get-started/applications/dynamic-client-registration)
+- [Let's fix OAuth in MCP](https://aaronparecki.com/2025/04/03/15/oauth-for-model-context-protocol)
+- [OAuth for MCP explained with a real-world example](https://stytch.com/blog/oauth-for-mcp-explained-with-a-real-world-example/)
+- [Treat the MCP server as an OAuth resource server rather than an authorization server](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/205)
+- [HTTP + SSE MCP Server w/ OAuth by @NapthaAI](https://github.com/NapthaAI/http-oauth-mcp-server)
