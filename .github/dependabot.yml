@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      day: "monday"
+      interval: "monthly"
+      time: "09:00"
+      timezone: "Australia/Melbourne"
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      day: "monday"
+      interval: "monthly"
+      time: "09:00"
+      timezone: "Australia/Melbourne"
+    pull-request-branch-name:
+      separator: "-"
+    open-pull-requests-limit: 99
+    target-branch: main
+    ignore:
+      - dependency-name: "husky"
+        versions:
+          - ">= 7"
+      - dependency-name: "@types/node"
+        versions:
+          - ">= 22"
+    commit-message:
+      prefix: chore
+      include: scope

@@ -1,0 +1,66 @@
+# This workflow is used when a commit is pushed to the feature branch.
+# It follows the following steps:
+#   - Push to feature branch → push.yml → semantic-release-dev.yml → creates tag → calls docker-build.yml.
+name: Push
+
+on:
+  push:
+    # Since the branches must be always up to date, we do not need to run below workflows.
+    branches-ignore:
+      - "main" # Exclude default branch
+      - "v*" # Exclude tags
+  workflow_dispatch:
+
+# Cancel previous runs if a new one is triggered
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # Only need to read code for lint/test/build, but required for semantic-release-dev
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run test
+        run: npm run test
+
+      - name: Run build
+        run: npm run build
+
+  semantic-release-dev:
+    name: Semantic Release - Dev
+    needs: lint-and-test
+    # Only run semantic-release-dev for branches configured in release.config.dev.mjs
+    if: |
+      !contains(github.event.head_commit.message, 'skip ci') && (
+        startsWith(github.event.head_commit.message, 'feat') ||
+        startsWith(github.event.head_commit.message, 'fix') ||
+        startsWith(github.event.head_commit.message, 'refactor') ||
+        startsWith(github.event.head_commit.message, 'perf') ||
+        startsWith(github.event.head_commit.message, 'revert') ||
+        startsWith(github.event.head_commit.message, 'bump') ||
+        startsWith(github.event.head_commit.message, 'localize')
+      )
+    uses: ./.github/workflows/semantic-release-dev.yml
+    secrets: inherit

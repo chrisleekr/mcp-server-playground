@@ -1,0 +1,109 @@
+# This workflow is used to release a new version of the package to the feature branch.
+# It follows the following steps:
+#   - Push to feature branch → push.yml → semantic-release-dev.yml → creates tag → calls docker-build.yml.
+# Reference: https://semantic-release.gitbook.io/semantic-release/recipes/ci-configurations/github-actions
+name: Semantic Release - Dev
+
+on:
+  # push:
+  #   # Run this workflow only when a commit is pushed to the following branches.
+  #   branches:
+  #     - "feat/**"
+  #     - "fix/**"
+  #     - "refactor/**"
+  #     - "perf/**"
+  #     - "revert/**"
+  #     - "bump/**"
+  # workflow_run:
+  #   workflows:
+  #     - 'Push'
+  #   types:
+  #     - completed
+  # This workflow is called by push.yml.
+  workflow_call:
+  workflow_dispatch:
+
+# Do not set concurrency group since this workflow is called by other workflows. Otherwise, deadlock will occur.
+
+permissions:
+  contents: write # Required: create tags and GitHub releases
+
+jobs:
+  release:
+    name: Semantic Release - Dev
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: 0
+    timeout-minutes: 15
+    outputs:
+      new-release-published: ${{ steps.semantic-release.outputs.new-release-published }}
+      new-release-version: ${{ steps.semantic-release.outputs.new-release-version }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Install semantic-release packages
+        run: |
+          npm install --no-save \
+            semantic-release@^24.2.5 \
+            @semantic-release/changelog@^6.0.3 \
+            @semantic-release/commit-analyzer@^13.0.1 \
+            @semantic-release/git@^10.0.1 \
+            @semantic-release/github@^11.0.3 \
+            @semantic-release/npm@^12.0.1 \
+            @semantic-release/release-notes-generator@^14.0.3 \
+            @semantic-release/exec@^7.1.0
+
+      - name: Verify npm audit
+        run: npm audit signatures
+
+      - name: Semantic Release
+        id: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # Rename the mjs file to make sure dev config is used. This is a workaround to avoid the issue that semantic-release does not use the dev config.
+          mv release.config.mjs release.config.mjs.backup
+          mv release.config.dev.mjs release.config.mjs
+
+          npx semantic-release
+
+          # Restore the mjs file
+          mv release.config.mjs.backup release.config.mjs
+
+          # Check if release output created by @semantic-release/exec
+          if [ -f "RELEASE_VERSION" ]; then
+            VERSION=$(cat RELEASE_VERSION)
+            echo "New release published: v$VERSION"
+            echo "new-release-published=true" >> $GITHUB_OUTPUT
+            echo "new-release-version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "No new release published"
+            echo "new-release-published=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Call Docker workflow after successful dev release
+  docker:
+    needs: release
+    if: needs.release.outputs.new-release-published == 'true'
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      tag-name: "v${{ needs.release.outputs.new-release-version }}"
+      is-dev-release: true
+    secrets: inherit

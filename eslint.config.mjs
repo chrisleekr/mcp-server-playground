@@ -5,6 +5,19 @@ import prettierConfig from 'eslint-config-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 
 export default [
+  {
+    ignores: [
+      'dist/**',
+      'build/**',
+      'node_modules/**',
+      'coverage/**',
+      '*.config.js',
+      '*.config.mjs',
+      '*.config.cjs',
+      '.rspack/**',
+      'jest.config.ts',
+    ],
+  },
   js.configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -123,16 +136,31 @@ export default [
   },
   // Prettier config must come last to override conflicting rules
   prettierConfig,
+
   {
-    ignores: [
-      'dist/**',
-      'build/**',
-      'node_modules/**',
-      'coverage/**',
-      '*.config.js',
-      '*.config.mjs',
-      '*.config.cjs',
-      '.rspack/**',
-    ],
+    files: ['**/*.test.ts', '**/jest.config.ts', '**/test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        test: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        jest: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+    },
   },
 ];

@@ -2,7 +2,34 @@
  * @type {import('semantic-release').GlobalConfig}
  */
 export default {
-  branches: ['main'],
+  branches: [
+    'main',
+    {
+      name: 'feat/*',
+      prerelease: 'dev',
+      channel: 'dev'
+    },
+    {
+      name: 'fix/*',
+      prerelease: 'dev',
+      channel: 'dev'
+    },
+    {
+      name: 'refactor/*',
+      prerelease: 'dev',
+      channel: 'dev'
+    },
+    {
+      name: 'perf/*',
+      prerelease: 'dev',
+      channel: 'dev'
+    },
+    {
+      name: 'revert/*',
+      prerelease: 'dev',
+      channel: 'dev'
+    }
+  ],
   plugins: [
     [
       '@semantic-release/commit-analyzer',
@@ -25,12 +52,6 @@ export default {
     ],
     '@semantic-release/release-notes-generator',
     [
-      '@semantic-release/changelog',
-      {
-        changelogFile: 'CHANGELOG.md'
-      }
-    ],
-    [
       '@semantic-release/npm',
       {
         pkgRoot: '.',
@@ -41,19 +62,10 @@ export default {
       '@semantic-release/npm',
       {
         pkgRoot: 'dist',
-        npmPublish: true
+        npmPublish: true,
+        distTag: 'dev'
       }
     ],
-    [
-      '@semantic-release/git',
-      {
-        assets: ['package.json', 'CHANGELOG.md'],
-        message:
-          'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
-      }
-    ],
-    // '@semantic-release/gitlab',
-    '@semantic-release/github',
     [
       '@semantic-release/exec',
       {
