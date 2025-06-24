@@ -1,5 +1,4 @@
 import { pathsToModuleNameMapper } from 'ts-jest';
-import { compilerOptions } from './tsconfig.json';
 import type { Config } from '@jest/types';
 
 const config: Config.InitialOptions = {
@@ -8,8 +7,29 @@ const config: Config.InitialOptions = {
   setupFilesAfterEnv: ['<rootDir>/test/setupFilesAfterEnv.ts'],
   preset: 'ts-jest',
   testEnvironment: 'node',
-  modulePaths: [compilerOptions.baseUrl],
-  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths),
+  modulePaths: ['./'],
+  moduleNameMapper:
+    pathsToModuleNameMapper({
+      '@/*': ['src/*'],
+      '@/types/*': ['src/types/*'],
+      '@/core/*': ['src/core/*'],
+      '@/config/*': ['src/config/*'],
+      '@/tools/*': ['src/tools/*'],
+      '@/utils/*': ['src/utils/*'],
+    }) ?? {},
+
+  // Modern ts-jest configuration
+  transform: {
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          module: 'CommonJS',
+          moduleResolution: 'node',
+        },
+      },
+    ],
+  },
 
   roots: ['<rootDir>'],
   moduleFileExtensions: ['js', 'ts'],

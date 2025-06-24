@@ -70,7 +70,7 @@
 
     "types": ["node", "@rspack/core/module"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"],
   "ts-node": {
     "esm": true,
