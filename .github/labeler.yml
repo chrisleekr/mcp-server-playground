@@ -1,26 +1,29 @@
-"type: feature ✨":
-  title: '^feat(\(.+\))?:.*'
-"type: fix 🐞":
-  title: '^fix(\(.+\))?:.*'
-"type: docs 📋":
-  title: '^docs(\(.+\))?:.*'
-"type: style 🎨":
-  title: '^style(\(.+\))?:.*'
-"type: refactor 🔧":
-  title: '^refactor(\(.+\))?:.*'
-"type: test 🧪":
-  title: '^test(\(.+\))?:.*'
-"type: chore 🧹":
-  title: '^chore(\(.+\))?:.*'
-"type: perf ⚡":
-  title: '^perf(\(.+\))?:.*'
-"type: build 🔨":
-  title: '^build(\(.+\))?:.*'
-"type: ci ⚙️":
-  title: '^ci(\(.+\))?:.*'
-"type: revert ↩️":
-  title: '^revert(\(.+\))?:.*'
-"type: localize 🌐":
-  title: '^localize(\(.+\))?:.*'
-"type: bump 📦":
-  title: '^bump(\(.+\))?:.*'
+version: 1
+appendOnly: true
+labels:
+  - label: "type: feature ✨"
+    title: '^feat(\(.+\))?:.*'
+  - label: "type: fix 🐞"
+    title: '^fix(\(.+\))?:.*'
+  - label: "type: docs 📋"
+    title: '^docs(\(.+\))?:.*'
+  - label: "type: style 🎨"
+    title: '^style(\(.+\))?:.*'
+  - label: "type: refactor 🔧"
+    title: '^refactor(\(.+\))?:.*'
+  - label: "type: test 🧪"
+    title: '^test(\(.+\))?:.*'
+  - label: "type: chore 🧹"
+    title: '^chore(\(.+\))?:.*'
+  - label: "type: perf ⚡"
+    title: '^perf(\(.+\))?:.*'
+  - label: "type: build 🔨"
+    title: '^build(\(.+\))?:.*'
+  - label: "type: ci ⚙️"
+    title: '^ci(\(.+\))?:.*'
+  - label: "type: revert ↩️"
+    title: '^revert(\(.+\))?:.*'
+  - label: "type: localize 🌐"
+    title: '^localize(\(.+\))?:.*'
+  - label: "type: bump 📦"
+    title: '^bump(\(.+\))?:.*'

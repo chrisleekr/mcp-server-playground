@@ -1,14 +1,26 @@
 name: "Generate Labels"
 
 on:
-  pull_request:
-    types: [opened, edited, synchronize]
+  - pull_request
+  - issues
 
 jobs:
   label:
     name: "Label PR based on title"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
-      - uses: srvaroa/labeler@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Label PR based on title
+        uses: srvaroa/labeler@v1
+        with:
+          config_path: .github/labeler.yml
+          use_local_config: false
+          fail_on_error: false
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
