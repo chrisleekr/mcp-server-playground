@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * @type {import('semantic-release').GlobalConfig}
  */
@@ -6,27 +7,32 @@ export default {
     'main',
     {
       name: 'feat/*',
-      prerelease: 'dev.${commit.short}',
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
       channel: 'dev',
     },
     {
       name: 'fix/*',
-      prerelease: 'dev.${commit.short}',
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
       channel: 'dev',
     },
     {
       name: 'refactor/*',
-      prerelease: 'dev.${commit.short}',
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
       channel: 'dev',
     },
     {
       name: 'perf/*',
-      prerelease: 'dev.${commit.short}',
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
       channel: 'dev',
     },
     {
       name: 'revert/*',
-      prerelease: 'dev.${commit.short}',
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
       channel: 'dev',
     },
   ],
@@ -47,6 +53,7 @@ export default {
           { type: 'build', release: false },
           { type: 'ci', release: false },
           { type: 'bump', release: 'patch' },
+          { type: 'localize', release: 'patch' },
         ],
       },
     ],
