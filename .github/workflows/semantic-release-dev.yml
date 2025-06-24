@@ -82,13 +82,12 @@ jobs:
           mv release.config.mjs release.config.mjs.backup
           mv release.config.dev.mjs release.config.mjs
 
-          # Run semantic-release (it will create output files via @semantic-release/exec if a release is made)
-          npx semantic-release --debug
+          npx semantic-release
 
           # Restore the mjs file
           mv release.config.mjs.backup release.config.mjs
 
-          # Check if release output files were created by @semantic-release/exec
+          # Check if release output created by @semantic-release/exec
           if [ -f "RELEASE_VERSION" ]; then
             VERSION=$(cat RELEASE_VERSION)
             echo "New release published: v$VERSION"
