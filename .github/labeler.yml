@@ -1,5 +1,5 @@
-version: "1"
-appendOnly: "true"
+version: 1
+appendOnly: true
 labels:
   - label: "type: feature ✨"
     title: '^feat(\(.+\))?:.*'
