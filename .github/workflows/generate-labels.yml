@@ -11,4 +11,4 @@ jobs:
     steps:
       - uses: srvaroa/labeler@v1
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
