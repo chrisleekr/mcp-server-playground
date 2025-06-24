@@ -2,28 +2,28 @@ version: "1"
 appendOnly: "true"
 labels:
   - label: "type: feature ✨"
-    title: "^feat\(.+\)?:.*"
+    title: '^feat(\(.+\))?:.*'
   - label: "type: fix 🐞"
-    title: "^fix\(.+\)?:.*"
+    title: '^fix(\(.+\))?:.*'
   - label: "type: docs 📋"
-    title: "^docs\(.+\)?:.*"
+    title: '^docs(\(.+\))?:.*'
   - label: "type: style 🎨"
-    title: "^style\(.+\)?:.*"
+    title: '^style(\(.+\))?:.*'
   - label: "type: refactor 🔧"
-    title: "^refactor\(.+\)?:.*"
+    title: '^refactor(\(.+\))?:.*'
   - label: "type: test 🧪"
-    title: "^test\(.+\)?:.*"
+    title: '^test(\(.+\))?:.*'
   - label: "type: chore 🧹"
-    title: "^chore\(.+\)?:.*"
+    title: '^chore(\(.+\))?:.*'
   - label: "type: perf ⚡"
-    title: "^perf\(.+\)?:.*"
+    title: '^perf(\(.+\))?:.*'
   - label: "type: build 🔨"
-    title: "^build\(.+\)?:.*"
+    title: '^build(\(.+\))?:.*'
   - label: "type: ci ⚙️"
-    title: "^ci\(.+\)?:.*"
+    title: '^ci(\(.+\))?:.*'
   - label: "type: revert ↩️"
-    title: "^revert\(.+\)?:.*"
+    title: '^revert(\(.+\))?:.*'
   - label: "type: localize 🌐"
-    title: "^localize\(.+\)?:.*"
+    title: '^localize(\(.+\))?:.*'
   - label: "type: bump 📦"
-    title: "^bump\(.+\)?:.*"
+    title: '^bump(\(.+\))?:.*'
