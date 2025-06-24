@@ -94,7 +94,7 @@ jobs:
         id: docker-meta
         uses: docker/metadata-action@v5
         with:
-          images: chrisleekr/test-github-actions
+          images: chrisleekr/mcp-server-boilerplate
           tags: |
             type=raw,value=${{ env.PACKAGE_VERSION }}
             type=raw,value=latest,enable=${{ env.IS_DEV_RELEASE == 'false' }}
@@ -110,7 +110,7 @@ jobs:
           file: Dockerfile
           platforms: linux/arm64
           push: true
-          target: production-stage
+          target: production
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -128,7 +128,7 @@ jobs:
           file: Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          target: production-stage
+          target: production
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |

@@ -8,6 +8,9 @@ FROM base AS development
 
 WORKDIR /app
 
+# Disable husky
+ENV HUSKY=0
+
 COPY package*.json ./
 
 RUN npm ci && npm cache clean --force

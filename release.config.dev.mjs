@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * @type {import('semantic-release').GlobalConfig}
  */
@@ -6,29 +7,34 @@ export default {
     'main',
     {
       name: 'feat/*',
-      prerelease: 'dev',
-      channel: 'dev'
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
+      channel: 'dev',
     },
     {
       name: 'fix/*',
-      prerelease: 'dev',
-      channel: 'dev'
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
+      channel: 'dev',
     },
     {
       name: 'refactor/*',
-      prerelease: 'dev',
-      channel: 'dev'
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
+      channel: 'dev',
     },
     {
       name: 'perf/*',
-      prerelease: 'dev',
-      channel: 'dev'
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
+      channel: 'dev',
     },
     {
       name: 'revert/*',
-      prerelease: 'dev',
-      channel: 'dev'
-    }
+      prerelease: `dev.${process.env.GITHUB_SHA?.slice(0, 7) || 'local'}`,
+
+      channel: 'dev',
+    },
   ],
   plugins: [
     [
@@ -46,31 +52,32 @@ export default {
           { type: 'test', release: false },
           { type: 'build', release: false },
           { type: 'ci', release: false },
-          { type: 'bump', release: 'patch' }
-        ]
-      }
+          { type: 'bump', release: 'patch' },
+          { type: 'localize', release: 'patch' },
+        ],
+      },
     ],
     '@semantic-release/release-notes-generator',
     [
       '@semantic-release/npm',
       {
         pkgRoot: '.',
-        npmPublish: false
-      }
+        npmPublish: false,
+      },
     ],
     [
       '@semantic-release/npm',
       {
         pkgRoot: 'dist',
         npmPublish: true,
-        distTag: 'dev'
-      }
+        distTag: 'dev',
+      },
     ],
     [
       '@semantic-release/exec',
       {
-        successCmd: 'echo "${nextRelease.version}" > RELEASE_VERSION'
-      }
-    ]
-  ]
+        successCmd: 'echo "${nextRelease.version}" > RELEASE_VERSION',
+      },
+    ],
+  ],
 };
