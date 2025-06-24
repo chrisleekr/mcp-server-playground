@@ -1,5 +1,5 @@
 {
-  "name": "@chrislee/mcp-server-boilerplate",
+  "name": "@chrisleekr/mcp-server-boilerplate",
   "version": "1.1.0",
   "description": "A MCP (Model Context Protocol) server boilerplate with TypeScript",
   "main": "dist/index.js",
@@ -7,6 +7,10 @@
   "license": "MIT",
   "bin": {
     "mcp-server-boilerplate": "dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
     "build": "rspack build",
@@ -35,7 +39,15 @@
     "server",
     "anthropic"
   ],
-  "author": "MCP Server Boilerplate",
+  "author": "Chris Lee <git@chrislee.kr>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrisleekr/mcp-server-boilerplate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chrisleekr/mcp-server-boilerplate/issues"
+  },
+  "homepage": "https://github.com/chrisleekr/mcp-server-boilerplate#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.3",
     "axios": "^1.10.0",
