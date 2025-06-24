@@ -54,13 +54,13 @@ jobs:
     # Only run semantic-release-dev for branches configured in release.config.dev.mjs
     if: |
       !contains(github.event.head_commit.message, 'skip ci') && (
-        startsWith(github.ref, 'refs/heads/feat/') ||
-        startsWith(github.ref, 'refs/heads/fix/') ||
-        startsWith(github.ref, 'refs/heads/refactor/') ||
-        startsWith(github.ref, 'refs/heads/perf/') ||
-        startsWith(github.ref, 'refs/heads/revert/') ||
-        startsWith(github.ref, 'refs/heads/bump/') ||
-        startsWith(github.ref, 'refs/heads/localize/')
+        startsWith(github.event.head_commit.message, 'feat') ||
+        startsWith(github.event.head_commit.message, 'fix') ||
+        startsWith(github.event.head_commit.message, 'refactor') ||
+        startsWith(github.event.head_commit.message, 'perf') ||
+        startsWith(github.event.head_commit.message, 'revert') ||
+        startsWith(github.event.head_commit.message, 'bump') ||
+        startsWith(github.event.head_commit.message, 'localize')
       )
     uses: ./.github/workflows/semantic-release-dev.yml
     secrets: inherit
