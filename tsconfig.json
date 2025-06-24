@@ -13,7 +13,7 @@
     /* Modules */
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "rootDir": "./src",
+    "rootDir": "./",
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
@@ -73,6 +73,7 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
   "ts-node": {
-    "esm": true
+    "esm": true,
+    "require": ["tsconfig-paths/register"]
   }
 }

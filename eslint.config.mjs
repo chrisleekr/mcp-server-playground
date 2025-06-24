@@ -5,6 +5,19 @@ import prettierConfig from 'eslint-config-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 
 export default [
+  {
+    ignores: [
+      'dist/**',
+      'build/**',
+      'node_modules/**',
+      'coverage/**',
+      '*.config.js',
+      '*.config.mjs',
+      '*.config.cjs',
+      '.rspack/**',
+      'jest.config.ts',
+    ],
+  },
   js.configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -123,16 +136,12 @@ export default [
   },
   // Prettier config must come last to override conflicting rules
   prettierConfig,
+
   {
-    ignores: [
-      'dist/**',
-      'build/**',
-      'node_modules/**',
-      'coverage/**',
-      '*.config.js',
-      '*.config.mjs',
-      '*.config.cjs',
-      '.rspack/**',
-    ],
+    files: ['**/*.test.ts', '**/jest.config.ts', '**/test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off',
+    },
   },
 ];

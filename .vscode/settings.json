@@ -49,6 +49,7 @@
     "dpop",
     "interruptible",
     "iovalkey",
+    "localise",
     "loglevel",
     "modelcontextprotocol",
     "oninitialized",
