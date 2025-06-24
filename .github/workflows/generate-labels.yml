@@ -8,6 +8,10 @@ jobs:
   label:
     name: "Label PR based on title"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
