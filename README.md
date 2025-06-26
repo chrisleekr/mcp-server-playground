@@ -60,6 +60,14 @@ A comprehensive Model Context Protocol (MCP) server boilerplate built with TypeS
    npm run dev:setup
    ```
 
+#### Helm Chart
+
+```bash
+helm repo add chrisleekr https://chrisleekr.github.io/helm-charts/
+helm repo update
+helm install mcp-server-boilerplate chrisleekr/mcp-server-boilerplate
+```
+
 ### Set up the MCP server for Cursor
 
 1. Create MCP configuration file for local build
@@ -101,7 +109,6 @@ A comprehensive Model Context Protocol (MCP) server boilerplate built with TypeS
 ### Setup Auth0 for authorization
 
 1. Create a new application in Auth0
-
    - Go to [Auth0 Dashboard](https://manage.auth0.com/)
    - Click on "Applications"
    - Click on "Create Application"
@@ -110,14 +117,12 @@ A comprehensive Model Context Protocol (MCP) server boilerplate built with TypeS
    - Click on "Create"
 
 2. Set up the application
-
    - Click on "Settings"
    - Set the following settings:
      - Allowed Callback URLs: `http://localhost:3000/oauth/auth0-callback`
      - Allowed Web Origins: `http://localhost:3000`
 
 3. Create a new API
-
    - Click on "APIs"
    - Click on "Create API"
      - Name: MCP Server Boilerplate
