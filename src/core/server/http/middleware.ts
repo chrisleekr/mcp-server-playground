@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser';
 import { Application, NextFunction, Request, Response } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,6 +14,18 @@ export function setupMiddleware(app: Application): void {
   app.use(helmet());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
+
+  // Rate limit requests globally
+  app.use(
+    // Refer: https://express-rate-limit.mintlify.app/reference/configuration
+    rateLimit({
+      windowMs: 1 * 60 * 1000, // 1 minute
+      max: 10, // Limit each IP to 10 requests per `windowMs`
+      standardHeaders: true,
+      legacyHeaders: false,
+      // Can use `store` to use a database to store the rate limit data
+    })
+  );
 
   app.use(
     pinoHttp({
