@@ -12,8 +12,6 @@ import { AsyncLocalStorageLoggingContext, loggingContext } from './context';
 
 export function setupMiddleware(app: Application): void {
   app.use(helmet());
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
 
   // Rate limit requests globally
   app.use(
@@ -30,6 +28,9 @@ export function setupMiddleware(app: Application): void {
       },
     })
   );
+
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
 
   app.use(
     pinoHttp({
