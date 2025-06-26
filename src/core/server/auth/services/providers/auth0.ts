@@ -72,7 +72,7 @@ export class Auth0Provider {
       code: params.code,
       // Note: redirect_uri must be OAuth Proxy redirect_uri.
       // redirect_uri: params.redirectUri,
-      redirect_uri: `http://${config.server.http.host}:${config.server.http.port}/oauth/auth0-callback`,
+      redirect_uri: `${config.server.auth.baseUrl}/oauth/auth0-callback`,
       code_verifier: params.codeVerifier,
     };
 

@@ -37,9 +37,7 @@ export class OAuthService {
   }
 
   public getOAuthAuthorizationServer(): OAuthServiceAuthorizationServer {
-    const baseUrl = `http://${config.server.http.host}:${config.server.http.port}`;
-
-    const issuer = `${config.server.auth.issuer}`;
+    const { baseUrl, issuer } = config.server.auth;
 
     return {
       issuer,
@@ -224,7 +222,7 @@ export class OAuthService {
     //   throw new Error('Provider not supported');
     // }
     const redirectUrl = this.auth0Provider.generateAuthorizationUrl({
-      redirectUri: `http://${config.server.http.host}:${config.server.http.port}/oauth/auth0-callback`,
+      redirectUri: `${config.server.auth.baseUrl}/oauth/auth0-callback`,
       // redirectUri: args.redirect_uri,
       state,
       codeChallenge,

@@ -17,6 +17,11 @@ export function setupMiddleware(app: Application): void {
   app.use(
     pinoHttp({
       logger: logger.getLogger(),
+      autoLogging: {
+        ignore: (req: Request) => {
+          return req.headers['user-agent']?.includes('kube-probe') ?? false;
+        },
+      },
     })
   );
 

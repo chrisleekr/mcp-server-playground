@@ -68,7 +68,7 @@
     /* Completeness */
     "skipLibCheck": true,
 
-    "types": ["node", "@rspack/core/module"]
+    "types": ["node", "@rspack/core/module", "jest"]
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"],
