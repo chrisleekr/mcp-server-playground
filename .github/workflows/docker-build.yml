@@ -24,6 +24,12 @@ on:
         type: boolean
         default: false
 
+# Refer: https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds#generating-artifact-attestations-for-your-builds
+permissions:
+  contents: read
+  # id-token: write
+  # attestations: write
+
 jobs:
   docker:
     name: Build & Push Docker Image
