@@ -19,46 +19,46 @@ export default {
           { type: 'test', release: false },
           { type: 'build', release: false },
           { type: 'ci', release: false },
-          { type: 'bump', release: 'patch' }
-        ]
-      }
+          { type: 'bump', release: 'patch' },
+        ],
+      },
     ],
     '@semantic-release/release-notes-generator',
     [
       '@semantic-release/changelog',
       {
-        changelogFile: 'CHANGELOG.md'
-      }
+        changelogFile: 'CHANGELOG.md',
+      },
     ],
     [
       '@semantic-release/npm',
       {
         pkgRoot: '.',
-        npmPublish: false
-      }
+        npmPublish: false,
+      },
     ],
     [
       '@semantic-release/npm',
       {
         pkgRoot: 'dist',
-        npmPublish: true
-      }
+        npmPublish: true,
+      },
     ],
     [
       '@semantic-release/git',
       {
-        assets: ['package.json', 'CHANGELOG.md'],
+        assets: ['package.json', 'package-lock.json', 'CHANGELOG.md'],
         message:
-          'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
-      }
+          'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
+      },
     ],
     // '@semantic-release/gitlab',
     '@semantic-release/github',
     [
       '@semantic-release/exec',
       {
-        successCmd: 'echo "${nextRelease.version}" > RELEASE_VERSION'
-      }
-    ]
-  ]
+        successCmd: 'echo "${nextRelease.version}" > RELEASE_VERSION',
+      },
+    ],
+  ],
 };
