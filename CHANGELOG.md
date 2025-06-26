@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/chrisleekr/mcp-server-boilerplate/compare/v1.0.0...v1.0.1) (2025-06-26)
+
+
+### Bug Fixes
+
+* updated base uri ([#5](https://github.com/chrisleekr/mcp-server-boilerplate/issues/5)) ([ef08572](https://github.com/chrisleekr/mcp-server-boilerplate/commit/ef08572860b3c9a2b75c66305c2e389196065eef))
+
 # 1.0.0 (2025-06-24)
 
 
