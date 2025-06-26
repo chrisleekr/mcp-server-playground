@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser';
 import { Application, NextFunction, Request, Response } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,6 +12,23 @@ import { AsyncLocalStorageLoggingContext, loggingContext } from './context';
 
 export function setupMiddleware(app: Application): void {
   app.use(helmet());
+
+  // Rate limit requests globally
+  app.use(
+    // Refer: https://express-rate-limit.mintlify.app/reference/configuration
+    rateLimit({
+      windowMs: 1 * 60 * 1000, // 1 minute
+      max: 100, // Limit each IP to 100 requests per `windowMs`
+      standardHeaders: true,
+      legacyHeaders: false,
+      // Can use `store` to use a database to store the rate limit data
+      skip: (req: Request) => {
+        // Skip rate limiting for kube-probe requests
+        return req.headers['user-agent']?.includes('kube-probe') ?? false;
+      },
+    })
+  );
+
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
 

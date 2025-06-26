@@ -24,6 +24,10 @@ on:
         type: boolean
         default: false
 
+# Refer: https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds#generating-artifact-attestations-for-your-builds
+permissions:
+  contents: read
+
 jobs:
   docker:
     name: Build & Push Docker Image
@@ -111,8 +115,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           target: production
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=chrisleekr/mcp-server-boilerplate:cache
+          cache-to: type=registry,mode=max,ref=chrisleekr/mcp-server-boilerplate:cache
           build-args: |
             PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
             GIT_HASH=${{ env.GIT_HASH }}
@@ -129,8 +133,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           target: production
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=chrisleekr/mcp-server-boilerplate:cache
+          cache-to: type=registry,mode=max,ref=chrisleekr/mcp-server-boilerplate:cache
           build-args: |
             PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
             GIT_HASH=${{ env.GIT_HASH }}
