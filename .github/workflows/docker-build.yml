@@ -115,8 +115,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           target: production
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry
+          cache-to: type=registry,mode=max
           build-args: |
             PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
             GIT_HASH=${{ env.GIT_HASH }}
@@ -133,8 +133,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           target: production
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry
+          cache-to: type=registry,mode=max
           build-args: |
             PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
             GIT_HASH=${{ env.GIT_HASH }}
