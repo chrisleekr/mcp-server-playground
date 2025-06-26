@@ -18,7 +18,7 @@ export function setupMiddleware(app: Application): void {
     // Refer: https://express-rate-limit.mintlify.app/reference/configuration
     rateLimit({
       windowMs: 1 * 60 * 1000, // 1 minute
-      max: 10, // Limit each IP to 10 requests per `windowMs`
+      max: 100, // Limit each IP to 100 requests per `windowMs`
       standardHeaders: true,
       legacyHeaders: false,
       // Can use `store` to use a database to store the rate limit data
