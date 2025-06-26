@@ -24,6 +24,10 @@ export function setupMiddleware(app: Application): void {
       standardHeaders: true,
       legacyHeaders: false,
       // Can use `store` to use a database to store the rate limit data
+      skip: (req: Request) => {
+        // Skip rate limiting for kube-probe requests
+        return req.headers['user-agent']?.includes('kube-probe') ?? false;
+      },
     })
   );
 
