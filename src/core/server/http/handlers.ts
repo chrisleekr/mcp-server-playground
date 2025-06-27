@@ -14,6 +14,7 @@ export function setupRequestHandlers(
 ): void {
   app.get('/', (_req, res) => {
     res.send('Hello MCP Server');
+    return;
   });
 
   setupPingHandler(app);

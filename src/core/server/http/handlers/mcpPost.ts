@@ -76,6 +76,7 @@ export function setupMCPPostHandler(
         }
 
         await transport.handleRequest(req, res, requestBody);
+        return;
       } catch (error) {
         loggingContext.log('error', 'Error handling HTTP request', {
           data: {
@@ -86,6 +87,7 @@ export function setupMCPPostHandler(
           },
         });
         res.status(500).json({ error: 'Internal server error' });
+        return;
       }
     })();
   });

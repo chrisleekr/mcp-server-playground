@@ -166,29 +166,29 @@ publish-dev-docker:
 #     - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
 #     - semantic-release
 
-# publish-tag-docker:
-#   stage: release
-#   <<: *main_branch
-#   needs:
-#     - semantic-release
-#   image: docker:27-dind
-#   services:
-#     - name: docker:27-dind
-#       alias: docker
-#   variables:
-#     DOCKER_HOST: tcp://docker:2376
-#     DOCKER_TLS_CERTDIR: '/certs'
-#     DOCKER_TLS_VERIFY: 1
-#     DOCKER_CERT_PATH: '$DOCKER_TLS_CERTDIR/client'
-#   before_script: *before_script_docker
-#   script:
-#     - apk add --no-cache git
-#     - git pull origin main
-#     - PACKAGE_VERSION=$(grep -m1 version package.json | cut -c 15- | rev | cut
-#       -c 3- | rev)
-#     - GIT_HASH=$(git rev-parse --short HEAD)
-#     - docker buildx build --progress plain --platform linux/amd64,linux/arm64
-#       --allow network.host --provenance false
-#       --build-arg PACKAGE_VERSION=$PACKAGE_VERSION --build-arg GIT_HASH=$GIT_HASH
-#       --build-arg NODE_ENV=production --target production --pull --tag
-#       $CI_REGISTRY/chrisleekr/${CI_PROJECT_NAME}:${PACKAGE_VERSION} --push .
+publish-tag-docker:
+  stage: release
+  <<: *main_branch
+  # needs:
+  #   - semantic-release
+  image: docker:27-dind
+  services:
+    - name: docker:27-dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+  before_script: *before_script_docker
+  script:
+    - apk add --no-cache git
+    - git pull origin main
+    - PACKAGE_VERSION=$(grep -m1 version package.json | cut -c 15- | rev | cut
+      -c 3- | rev)
+    - GIT_HASH=$(git rev-parse --short HEAD)
+    - docker buildx build --progress plain --platform linux/amd64,linux/arm64
+      --allow network.host --provenance false
+      --build-arg PACKAGE_VERSION=$PACKAGE_VERSION --build-arg GIT_HASH=$GIT_HASH
+      --build-arg NODE_ENV=production --target production --pull --tag
+      $CI_REGISTRY/chrisleekr/${CI_PROJECT_NAME}:${PACKAGE_VERSION} --push .

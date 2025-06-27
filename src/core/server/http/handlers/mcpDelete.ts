@@ -46,7 +46,6 @@ export function setupMCPDeleteHandler(
         loggingContext.log('info', 'Session terminated', {
           data: { sessionId },
         });
-        res.status(200).json({ message: 'Session terminated' }); // Return 200 to gracefully handle the request
       } catch (error: unknown) {
         loggingContext.log('error', 'Error handling DELETE request', {
           data: {
@@ -57,6 +56,7 @@ export function setupMCPDeleteHandler(
           },
         });
         res.status(500).json({ error: 'Internal server error' });
+        return;
       }
     })();
   });
