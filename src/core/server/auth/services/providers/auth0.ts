@@ -371,6 +371,7 @@ export class Auth0Provider {
         req.query as Record<string, string>
       );
       res.redirect(response.redirectUrl);
+      return;
     });
 
     loggingContext.log('info', 'Auth0 handlers setup complete');

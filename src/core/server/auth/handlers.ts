@@ -80,6 +80,7 @@ export function setupAuthHandlers(app: Application): void {
 
       res.setHeader('Content-Type', 'application/json');
       res.status(200).json(metadata);
+      return;
     }
   );
 
@@ -91,6 +92,7 @@ export function setupAuthHandlers(app: Application): void {
 
       res.setHeader('Content-Type', 'application/json');
       res.status(200).json(metadata);
+      return;
     }
   );
 
@@ -100,6 +102,7 @@ export function setupAuthHandlers(app: Application): void {
 
     res.setHeader('Content-Type', 'application/json');
     res.status(200).json(response);
+    return;
   });
 
   app.get('/oauth/authorize', async (req: Request, res: Response) => {
@@ -108,6 +111,7 @@ export function setupAuthHandlers(app: Application): void {
     const response = await oauthService.handleAuthorization(request);
 
     res.redirect(response.redirectUrl);
+    return;
   });
 
   app.post('/oauth/token', async (req: Request, res: Response) => {
@@ -116,6 +120,7 @@ export function setupAuthHandlers(app: Application): void {
 
     res.setHeader('Content-Type', 'application/json');
     res.status(200).json(response);
+    return;
   });
 
   app.post('/oauth/revoke', async (req: Request, res: Response) => {
@@ -124,12 +129,14 @@ export function setupAuthHandlers(app: Application): void {
 
     res.setHeader('Content-Type', 'application/json');
     res.status(200).json(response);
+    return;
   });
 
   app.get('/oauth/stats', async (_req: Request, res: Response) => {
     const response = await oauthService.getStats();
     res.setHeader('Content-Type', 'application/json');
     res.status(200).json(response);
+    return;
   });
 
   oauthService.setupHandlers(app);
