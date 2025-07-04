@@ -149,13 +149,14 @@ export interface OAuthServiceTokenRecord {
 }
 
 export const OAuthServiceHandleTokenRequestSchema = z.object({
-  grant_type: z.string(),
-  code: z.string().optional(),
-  redirect_uri: z.string().optional(),
+  grant_type: z.enum(['authorization_code', 'refresh_token']),
   client_id: z.string(),
   client_secret: z.string().optional(),
-  code_verifier: z.string().optional(),
+  code: z.string().optional(),
+  redirect_uri: z.string().optional(),
   refresh_token: z.string().optional(),
+  code_verifier: z.string().optional(),
+  resource: z.string().optional(),
 });
 
 export type OAuthServiceHandleTokenRequest = z.infer<

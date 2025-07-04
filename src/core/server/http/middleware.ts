@@ -10,6 +10,11 @@ import { logger } from '@/utils/logger';
 
 import { AsyncLocalStorageLoggingContext, loggingContext } from './context';
 
+// MCP Protocol Version constants
+const CURRENT_MCP_VERSION = '2025-06-18';
+const FALLBACK_MCP_VERSION = '2025-03-26';
+const SUPPORTED_MCP_VERSIONS = [CURRENT_MCP_VERSION, FALLBACK_MCP_VERSION];
+
 export function setupMiddleware(app: Application): void {
   app.use(helmet());
 
@@ -43,11 +48,57 @@ export function setupMiddleware(app: Application): void {
     })
   );
 
+  // MCP Protocol Version Enforcement Middleware
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    // Skip version check for non-MCP endpoints
+    if (!req.path.startsWith('/mcp')) {
+      next();
+      return;
+    }
+
+    const protocolVersion = req.headers['mcp-protocol-version'] as string;
+
+    if (!protocolVersion) {
+      // For backward compatibility, default to 2025-03-26 if version can't be detected
+      loggingContext.log(
+        'warn',
+        'Missing MCP-Protocol-Version header, defaulting to fallback version',
+        {
+          data: {
+            fallbackVersion: FALLBACK_MCP_VERSION,
+            path: req.path,
+            method: req.method,
+          },
+        }
+      );
+      // Set the fallback version in request context
+      req.headers['mcp-protocol-version'] = FALLBACK_MCP_VERSION;
+    } else if (!SUPPORTED_MCP_VERSIONS.includes(protocolVersion)) {
+      loggingContext.log('error', 'Unsupported MCP protocol version', {
+        data: {
+          requestedVersion: protocolVersion,
+          supportedVersions: SUPPORTED_MCP_VERSIONS,
+          path: req.path,
+        },
+      });
+      res.status(400).json({
+        error: 'Unsupported MCP protocol version',
+        supported_versions: SUPPORTED_MCP_VERSIONS,
+        requested_version: protocolVersion,
+      });
+      return;
+    }
+
+    next();
+  });
+
   app.use((req: Request, res: Response, next: NextFunction) => {
     const requestStartTime = Date.now();
     const context: AsyncLocalStorageLoggingContext = {
       requestId: (req.headers['x-request-id'] as string) || uuidv4(),
       mcpSessionId: (req.headers['mcp-session-id'] as string) || '',
+      mcpProtocolVersion:
+        (req.headers['mcp-protocol-version'] as string) || FALLBACK_MCP_VERSION,
       ipAddress: getIPAddress(req),
       userAgent: req.headers['user-agent'] ?? '',
       requestStartTime,
@@ -89,7 +140,7 @@ export function setupMiddleware(app: Application): void {
     res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.header(
       'Access-Control-Allow-Headers',
-      'Content-Type, Mcp-Session-Id, Last-Event-ID'
+      'Content-Type, Mcp-Session-Id, Mcp-Protocol-Version, Last-Event-ID, Authorization'
     );
 
     if (req.method === 'OPTIONS') {

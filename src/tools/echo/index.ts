@@ -2,6 +2,8 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { loggingContext } from '@/core/server/http/context';
 import {
+  createResourceLink,
+  createStructuredContent,
   Tool,
   ToolBuilder,
   ToolContext,
@@ -9,6 +11,7 @@ import {
   ToolResult,
 } from '@/tools/types';
 
+import packageJson from '../../../package.json';
 import { EchoInput, EchoInputSchema, EchoOutput } from './types';
 
 /**
@@ -58,16 +61,74 @@ async function executeEcho(
       },
     });
 
+    // Create structured content for the new MCP spec
+    const structuredOutput = createStructuredContent(
+      output,
+      {
+        type: 'object',
+        properties: {
+          originalMessage: {
+            type: 'string',
+            description: 'The original input message',
+          },
+          processedMessage: {
+            type: 'string',
+            description: 'The processed output message',
+          },
+          repeat: {
+            type: 'number',
+            description: 'Number of repetitions applied',
+          },
+          uppercase: {
+            type: 'boolean',
+            description: 'Whether uppercase transformation was applied',
+          },
+          length: {
+            type: 'number',
+            description: 'Length of the final processed message',
+          },
+        },
+        required: [
+          'originalMessage',
+          'processedMessage',
+          'repeat',
+          'uppercase',
+          'length',
+        ],
+      },
+      'json'
+    );
+
+    // Create example resource links
+    const resourceLinks = [
+      createResourceLink(
+        'echo://documentation',
+        'Echo Tool Documentation',
+        'Documentation for the echo tool functionality',
+        'text/markdown'
+      ),
+      createResourceLink(
+        `echo://result/${Date.now()}`,
+        'Echo Result',
+        'The result of this echo operation',
+        'application/json'
+      ),
+    ];
+
     return {
       success: true,
       data: output,
       executionTime,
       timestamp: new Date().toISOString(),
       metadata: {
-        toolVersion: '1.0.0',
+        toolVersion: packageJson.version,
+        mcpSpecVersion: '2025-06-18',
         originalLength: validatedInput.message.length,
         finalLength: repeatedMessage.length,
+        features: ['structured_output', 'resource_links'],
       },
+      structuredContent: structuredOutput,
+      resourceLinks,
     };
   } catch (error) {
     const executionTime = Date.now() - startTime;
@@ -88,7 +149,7 @@ async function executeEcho(
       executionTime,
       timestamp: new Date().toISOString(),
       metadata: {
-        toolVersion: '1.0.0',
+        toolVersion: packageJson.version,
         inputValidation: 'failed',
       },
     };
@@ -103,9 +164,38 @@ export const echoTool: Tool<EchoInput, EchoOutput> = new ToolBuilder<
   EchoOutput
 >('echo')
   .description(
-    'Echo a message back with optional transformations and repetition'
+    'Echo a message back with optional transformations, repetition, and structured output support'
   )
   .inputSchema(zodToJsonSchema(EchoInputSchema) as typeof ToolInputSchema)
+  .outputSchema({
+    type: 'object',
+    properties: {
+      originalMessage: {
+        type: 'string',
+        description: 'The original input message',
+      },
+      processedMessage: {
+        type: 'string',
+        description: 'The processed output message',
+      },
+      repeat: { type: 'number', description: 'Number of repetitions applied' },
+      uppercase: {
+        type: 'boolean',
+        description: 'Whether uppercase transformation was applied',
+      },
+      length: {
+        type: 'number',
+        description: 'Length of the final processed message',
+      },
+    },
+    required: [
+      'originalMessage',
+      'processedMessage',
+      'repeat',
+      'uppercase',
+      'length',
+    ],
+  })
   .examples([
     {
       input: { message: 'Hello, World!' },
@@ -118,6 +208,26 @@ export const echoTool: Tool<EchoInput, EchoOutput> = new ToolBuilder<
           uppercase: false,
           length: 13,
         },
+        structuredContent: {
+          type: 'structured',
+          content: {
+            originalMessage: 'Hello, World!',
+            processedMessage: 'Hello, World!',
+            repeat: 1,
+            uppercase: false,
+            length: 13,
+          },
+          format: 'json',
+        },
+        resourceLinks: [
+          {
+            type: 'resource_link',
+            uri: 'echo://documentation',
+            name: 'Echo Tool Documentation',
+            description: 'Documentation for the echo tool functionality',
+            mimeType: 'text/markdown',
+          },
+        ],
       },
       description: 'Simple echo example',
     },
@@ -132,12 +242,23 @@ export const echoTool: Tool<EchoInput, EchoOutput> = new ToolBuilder<
           uppercase: true,
           length: 17,
         },
+        structuredContent: {
+          type: 'structured',
+          content: {
+            originalMessage: 'Hello',
+            processedMessage: 'HELLO HELLO HELLO',
+            repeat: 3,
+            uppercase: true,
+            length: 17,
+          },
+          format: 'json',
+        },
       },
       description: 'Echo with repetition and uppercase transformation',
     },
   ])
   .tags(['utility', 'example', 'text'])
-  .version('1.0.0')
+  .version(packageJson.version)
   .timeout(2000)
   .implementation(executeEcho)
   .build();

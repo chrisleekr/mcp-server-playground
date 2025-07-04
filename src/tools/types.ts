@@ -9,7 +9,28 @@ export interface ToolContext {
 }
 
 /**
- * Tool result schema
+ * Resource link for pointing to external resources
+ */
+export interface ResourceLink {
+  type: 'resource_link';
+  uri: string;
+  name?: string;
+  description?: string;
+  mimeType?: string;
+}
+
+/**
+ * Structured content for tool results
+ */
+export interface StructuredContent {
+  type: 'structured';
+  content: unknown;
+  schema?: Record<string, unknown>;
+  format?: 'json' | 'yaml' | 'xml';
+}
+
+/**
+ * Tool result schema with structured output support
  */
 export const ToolResultSchema = z.object({
   success: z.boolean(),
@@ -18,6 +39,25 @@ export const ToolResultSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
   executionTime: z.number().optional(),
   timestamp: z.string().optional(),
+  structuredContent: z
+    .object({
+      type: z.literal('structured'),
+      content: z.unknown(),
+      schema: z.record(z.unknown()).optional(),
+      format: z.enum(['json', 'yaml', 'xml']).optional(),
+    })
+    .optional(),
+  resourceLinks: z
+    .array(
+      z.object({
+        type: z.literal('resource_link'),
+        uri: z.string(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        mimeType: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 
 export type ToolResult = z.infer<typeof ToolResultSchema>;
@@ -39,6 +79,8 @@ export interface ToolDefinition {
   tags?: string[];
   version?: string;
   timeout?: number;
+  outputSchema?: Record<string, unknown>;
+  supportsStructuredOutput?: boolean;
 }
 
 /**
@@ -78,6 +120,12 @@ export class ToolBuilder<TInput = Record<string, unknown>, TOutput = unknown> {
 
   public inputSchema(schema: typeof ToolInputSchema): this {
     this.toolDefinition.inputSchema = schema;
+    return this;
+  }
+
+  public outputSchema(schema: Record<string, unknown>): this {
+    this.toolDefinition.outputSchema = schema;
+    this.toolDefinition.supportsStructuredOutput = true;
     return this;
   }
 
@@ -124,4 +172,57 @@ export class ToolBuilder<TInput = Record<string, unknown>, TOutput = unknown> {
       execute: this.toolFunction,
     };
   }
+}
+
+/**
+ * Utility function to create structured content
+ */
+export function createStructuredContent(
+  content: unknown,
+  schema?: Record<string, unknown>,
+  format?: 'json' | 'yaml' | 'xml'
+): StructuredContent {
+  const result: StructuredContent = {
+    type: 'structured',
+    content,
+  };
+
+  if (schema !== undefined) {
+    result.schema = schema;
+  }
+
+  if (format !== undefined) {
+    result.format = format;
+  }
+
+  return result;
+}
+
+/**
+ * Utility function to create resource links
+ */
+export function createResourceLink(
+  uri: string,
+  name?: string,
+  description?: string,
+  mimeType?: string
+): ResourceLink {
+  const result: ResourceLink = {
+    type: 'resource_link',
+    uri,
+  };
+
+  if (name !== undefined) {
+    result.name = name;
+  }
+
+  if (description !== undefined) {
+    result.description = description;
+  }
+
+  if (mimeType !== undefined) {
+    result.mimeType = mimeType;
+  }
+
+  return result;
 }
