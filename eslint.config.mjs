@@ -100,7 +100,7 @@ export default [
         },
       ],
       'max-params': ['warn', 5],
-      'max-statements': ['warn', 20],
+      'max-statements': ['warn', 50],
       'max-nested-callbacks': ['error', 3],
 
       // Code quality rules

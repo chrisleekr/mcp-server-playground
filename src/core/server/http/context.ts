@@ -9,6 +9,7 @@ export interface AsyncLocalStorageLoggingContext {
   readonly requestId: string;
   readonly ipAddress: string;
   readonly mcpSessionId?: string;
+  readonly mcpProtocolVersion?: string;
   readonly userAgent?: string;
   readonly requestStartTime: number;
   // Allow additional dynamic properties

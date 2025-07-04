@@ -43,7 +43,9 @@ export function requireAuth(): (
       return;
     }
     try {
-      const result = await oauthService.validateAccessToken(token);
+      // Use the server issuer as the expected audience for MCP endpoints
+      const expectedAudience = config.server.auth.issuer;
+      const result = await oauthService.validateAccessToken(token, expectedAudience);
       if (!result.valid) {
         loggingContext.log('warn', 'Invalid token', { token });
         res.status(401).json({ error: 'Unauthorized - Invalid token' });
