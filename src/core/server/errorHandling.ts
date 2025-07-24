@@ -44,6 +44,7 @@ export function setupErrorHandling(server: Server): void {
         data: {
           error: {
             message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
           },
         },
       });

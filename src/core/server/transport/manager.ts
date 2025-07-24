@@ -26,7 +26,19 @@ export class TransportManager {
   public createTransport(): StreamableHTTPServerTransport {
     const newSessionId = randomUUID();
     const transport = new StreamableHTTPServerTransport({
+      /**
+       * Function that generates a session ID for the transport.
+       * The session ID SHOULD be globally unique and cryptographically secure (e.g., a securely generated UUID, a JWT, or a cryptographic hash)
+       *
+       * Return undefined to disable session management.
+       */
       sessionIdGenerator: (): string => newSessionId,
+      /**
+       * If true, the server will return JSON responses instead of starting an SSE stream.
+       * This can be useful for simple request/response scenarios without streaming.
+       * Default is false (SSE streams are preferred).
+       */
+      enableJsonResponse: false,
     });
 
     // Manually set the session ID to ensure it's available

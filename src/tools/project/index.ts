@@ -11,12 +11,17 @@ import {
   ToolResult,
 } from '@/tools/types';
 
+import { sendProgressNotification } from '../notification';
 import { ProjectInput, ProjectInputSchema, ProjectOutput } from './types';
 
-async function executeProject(
+async function* executeProject(
   input: ProjectInput,
-  _context: ToolContext
-): Promise<ToolResult & { data?: ProjectOutput }> {
+  context: ToolContext
+): AsyncGenerator<ToolResult & { data?: ProjectOutput }> {
+  const progressToken = context.progressToken;
+
+  loggingContext.log('info', `Progress token: ${progressToken}`);
+
   loggingContext.setContextValue('tool', 'project');
   // Get the project path from config
   const projectPath = config.tools.project.path;
@@ -24,10 +29,22 @@ async function executeProject(
 
   // if keywords is empty, return an error
   if (keywords.length === 0) {
-    return {
+    loggingContext.log('error', 'Keywords are required', {
+      data: { input },
+    });
+    yield {
       success: false,
       error: 'Keywords are required',
     };
+  }
+
+  if (context.server) {
+    await sendProgressNotification(context.server, {
+      progressToken,
+      progress: 0,
+      total: 100,
+      message: 'Starting project tool',
+    });
   }
 
   // Recursively search for files containing keywords
@@ -91,10 +108,19 @@ async function executeProject(
 
   await searchDirectory(projectPath, keywords);
 
+  if (context.server) {
+    await sendProgressNotification(context.server, {
+      progressToken,
+      progress: 100,
+      total: 100,
+      message: 'Project tool executed successfully',
+    });
+  }
+
   loggingContext.log('info', 'Project tool executed successfully', {
     data: { files: matchingFiles },
   });
-  return {
+  yield {
     success: true,
     data: { files: matchingFiles },
   };
@@ -122,5 +148,5 @@ export const projectTool = new ToolBuilder<ProjectInput, ProjectOutput>(
   .tags(['project', 'utility', 'core'])
   .version('1.0.0')
   .timeout(5000)
-  .implementation(executeProject)
+  .streamingImplementation(executeProject)
   .build();

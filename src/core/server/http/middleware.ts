@@ -107,7 +107,7 @@ export function setupMiddleware(app: Application): void {
     loggingContext.init(context, () => {
       // clean up on response finish
       res.on('finish', () => {
-        const requestDuration = Date.now() - context.requestStartTime;
+        const requestDuration = Date.now() - requestStartTime;
         // If the request takes longer than 30 seconds, log a warning
         if (requestDuration > 30000) {
           loggingContext.log(
@@ -130,6 +130,7 @@ export function setupMiddleware(app: Application): void {
         }
       });
 
+      // Continue with the next middleware immediately
       next();
     });
   });

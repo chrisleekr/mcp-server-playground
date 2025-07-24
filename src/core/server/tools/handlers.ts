@@ -1,7 +1,7 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
   CallToolRequest,
   CallToolRequestSchema,
+  CallToolResult,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
@@ -10,10 +10,12 @@ import { ToolContext } from '@/tools/types';
 
 import { loggingContext } from '../http/context';
 
-export function setupToolHandlers(
-  server: Server,
-  toolContext: ToolContext
-): void {
+export function setupToolHandlers(toolContext: ToolContext): void {
+  const server = toolContext.server;
+  if (!server) {
+    throw new Error('Server not found');
+  }
+
   // List available tools
   server.setRequestHandler(ListToolsRequestSchema, () => {
     const tools = toolLoader.getToolDefinitions();
@@ -35,39 +37,71 @@ export function setupToolHandlers(
   );
 }
 
-export async function handleToolCall(
+async function handleToolCall(
   request: CallToolRequest,
   toolContext: ToolContext
-): Promise<Record<string, unknown>> {
+): Promise<CallToolResult> {
+  const server = toolContext.server;
+  if (!server) {
+    throw new Error('Server not found');
+  }
+
   const { name, arguments: args } = request.params;
-  loggingContext.log('debug', `Executing tool: ${name}`, { data: { args } });
+
+  loggingContext.log('info', 'Handling tool call', {
+    data: { toolName: name, arguments: args },
+  });
+
+  const tool = toolLoader.getTool(name);
+  if (!tool) {
+    throw new Error(`Tool not found: ${name}`);
+  }
 
   try {
-    // Get tool from registry
-    const tool = toolLoader.getTool(name);
-    if (!tool) {
-      loggingContext.log('error', 'Unknown tool', { data: { name } });
-      throw new Error(`Unknown tool: ${name}`);
+    // Add progress token to context if provided
+    const requestWithMeta = request as CallToolRequest & {
+      _meta?: { progressToken?: string | number };
+    };
+    // If no progress token is provided, generate a random one
+    const progressToken =
+      requestWithMeta._meta?.progressToken ??
+      Math.random().toString(36).substring(2, 15);
+
+    loggingContext.setContextValue('progressToken', progressToken);
+    // Add progress token to tool context
+    const toolContextWithProgressToken: ToolContext = {
+      ...toolContext,
+      progressToken,
+    };
+
+    const generator = tool.execute(args ?? {}, toolContextWithProgressToken);
+    let finalResult: { success: boolean; [key: string]: unknown } | null = null;
+
+    // Get the result from the generator and assign it to the final result
+    for await (const result of generator) {
+      finalResult = result;
     }
 
-    // Execute tool with context
-    const result = await tool.execute(args ?? {}, toolContext);
+    // Ensure we have at least one result
+    finalResult ??= {
+      success: false,
+      error: 'No results generated',
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(result, null, 2),
+          text: JSON.stringify(finalResult),
         },
       ],
     };
-  } catch (error) {
-    loggingContext.log('error', 'Tool execution failed', {
+  } catch (error: unknown) {
+    loggingContext.log('error', 'Tool call failed', {
       data: {
-        error: {
-          message: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined,
-        },
+        toolName: name,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
       },
     });
 

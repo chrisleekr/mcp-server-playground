@@ -7,7 +7,7 @@ A comprehensive Model Context Protocol (MCP) server boilerplate built with TypeS
 - MCP Server implementation: HTTP-Based Streamable transport using `@modelcontextprotocol/sdk` with HTTP transport, session management, and tool execution.
 - OAuth authentication/3rd party authorization: Implements an OAuth server for MCP clients to process 3rd party authorization servers like Auth0, providing Dynamic Application Registration for MCP server.
 - Storage: Provide storage for MCP server to store data like OAuth sessions, tokens, etc.
-- Built-in sample tools: `echo`, `system-time`, `project` for demonstration.
+- Built-in sample tools: `echo`, `system-time`, `streaming`, `project` for demonstration.
 
 ## Why this project exists?
 
@@ -130,6 +130,10 @@ helm install mcp-server-boilerplate chrisleekr/mcp-server-boilerplate
      - JSON Web Token (JWT) Profile: Auth0
      - JSON Web Token (JWT) Signature Algorithm: RS256
    - Click on "Create"
+
+## TODO
+
+- [ ] Streaming is not working as expected. It returns the final result instead of streaming the data.
 
 ## Screenshots
 
