@@ -1,11 +1,18 @@
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { ToolSchema } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 
 /**
  * Tool execution context for dependency injection and configuration
  */
+
+// Refer: https://modelcontextprotocol.io/specification/2025-06-18/basic/utilities/progress
+export type ProgressToken = string | number;
+
 export interface ToolContext {
   config: Record<string, unknown>;
+  progressToken: ProgressToken;
+  server?: Server;
 }
 
 /**
@@ -84,22 +91,22 @@ export interface ToolDefinition {
 }
 
 /**
- * Tool execution function interface
+ * Streaming tool execution function interface using AsyncGenerator
  */
-export type ToolFunction<
+export type StreamingToolFunction<
   TInput = Record<string, unknown>,
   TOutput = unknown,
 > = (
   input: TInput,
   context: ToolContext
-) => Promise<ToolResult & { data?: TOutput }>;
+) => AsyncGenerator<ToolResult & { data?: TOutput }>;
 
 /**
  * Complete tool interface combining definition and implementation
  */
 export interface Tool<TInput = Record<string, unknown>, TOutput = unknown> {
   definition: ToolDefinition;
-  execute: ToolFunction<TInput, TOutput>;
+  execute: StreamingToolFunction<TInput, TOutput>;
 }
 
 /**
@@ -107,7 +114,7 @@ export interface Tool<TInput = Record<string, unknown>, TOutput = unknown> {
  */
 export class ToolBuilder<TInput = Record<string, unknown>, TOutput = unknown> {
   private toolDefinition: Partial<ToolDefinition> = {};
-  private toolFunction?: ToolFunction<TInput, TOutput>;
+  private toolFunction?: StreamingToolFunction<TInput, TOutput>;
 
   constructor(name: string) {
     this.toolDefinition.name = name;
@@ -151,7 +158,9 @@ export class ToolBuilder<TInput = Record<string, unknown>, TOutput = unknown> {
     return this;
   }
 
-  public implementation(fn: ToolFunction<TInput, TOutput>): this {
+  public streamingImplementation(
+    fn: StreamingToolFunction<TInput, TOutput>
+  ): this {
     this.toolFunction = fn;
     return this;
   }

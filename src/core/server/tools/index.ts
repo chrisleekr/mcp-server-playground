@@ -1,1 +1,1 @@
-export { handleToolCall, loadTools, setupToolHandlers } from './handlers';
+export { loadTools, setupToolHandlers } from './handlers';

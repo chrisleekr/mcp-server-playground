@@ -1,3 +1,5 @@
+/* eslint-disable max-lines-per-function */
+
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { loggingContext } from '@/core/server/http/context';
@@ -12,21 +14,36 @@ import {
 } from '@/tools/types';
 
 import packageJson from '../../../package.json';
+import { sendProgressNotification } from '../notification';
 import { EchoInput, EchoInputSchema, EchoOutput } from './types';
 
 /**
  * Echo tool implementation
  */
-// eslint-disable-next-line @typescript-eslint/require-await
-async function executeEcho(
+
+async function* executeEcho(
   input: EchoInput,
-  _context: ToolContext
-): Promise<ToolResult & { data?: EchoOutput }> {
+  context: ToolContext
+): AsyncGenerator<ToolResult & { data?: EchoOutput }> {
+  const progressToken = context.progressToken;
+
+  loggingContext.log('info', `Progress token: ${progressToken}`);
+
   loggingContext.setContextValue('tool', 'echo');
   const startTime = Date.now();
 
   try {
     loggingContext.log('debug', 'Executing echo tool', { data: { input } });
+
+    // Send mid-progress notification
+    if (context.server) {
+      await sendProgressNotification(context.server, {
+        progressToken,
+        progress: 0,
+        total: 100,
+        message: 'Starting echo tool',
+      });
+    }
 
     // Validate input using Zod schema
     const validatedInput = EchoInputSchema.parse(input);
@@ -41,6 +58,16 @@ async function executeEcho(
     const repeatedMessage = Array(validatedInput.repeat)
       .fill(processedMessage)
       .join(' ');
+
+    // Send completion notification
+    if (context.server) {
+      await sendProgressNotification(context.server, {
+        progressToken,
+        progress: 100,
+        total: 100,
+        message: 'Echo tool completed',
+      });
+    }
 
     // Prepare output
     const output: EchoOutput = {
@@ -115,7 +142,7 @@ async function executeEcho(
       ),
     ];
 
-    return {
+    yield {
       success: true,
       data: output,
       executionTime,
@@ -137,13 +164,16 @@ async function executeEcho(
 
     loggingContext.log('error', 'Echo tool execution failed', {
       data: {
-        error: errorMessage,
+        error: {
+          message: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+        },
         input,
         executionTime,
       },
     });
 
-    return {
+    yield {
       success: false,
       error: errorMessage,
       executionTime,
@@ -260,5 +290,5 @@ export const echoTool: Tool<EchoInput, EchoOutput> = new ToolBuilder<
   .tags(['utility', 'example', 'text'])
   .version(packageJson.version)
   .timeout(2000)
-  .implementation(executeEcho)
+  .streamingImplementation(executeEcho)
   .build();

@@ -4,6 +4,7 @@ import { Tool, ToolDefinition } from '@/tools/types';
 import { echoTool } from './echo';
 import { projectTool } from './project';
 import { toolRegistry } from './registry';
+import { streamingTool } from './streaming';
 import { systemTimeTool } from './system-time';
 
 export class ToolLoader {
@@ -24,19 +25,20 @@ export class ToolLoader {
     try {
       loggingContext.log('info', 'Loading tools...');
 
-      // Register core tools
+      // Register system time tool
       this.registerTool(systemTimeTool);
 
-      // Register example tools
+      // Register echo tool
       this.registerTool(echoTool);
+
+      // Register streaming tool
+      this.registerTool(streamingTool);
 
       // Register project tool
       this.registerTool(projectTool);
 
       this.loaded = true;
-      loggingContext.log('info', 'Successfully loaded tools', {
-        data: { tools: toolRegistry.list() },
-      });
+      loggingContext.log('info', 'Successfully loaded tools1');
     } catch (error: unknown) {
       loggingContext.log('error', 'Failed to load tools', {
         error: {

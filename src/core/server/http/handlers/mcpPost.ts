@@ -26,8 +26,11 @@ export function setupMCPPostHandler(
     void (async (): Promise<void> => {
       try {
         const requestBody = req.body as unknown;
-
         const sessionId = getSessionId(req);
+
+        loggingContext.log('debug', 'POST /mcp request body', {
+          data: { requestBody, sessionId },
+        });
 
         let transport: StreamableHTTPServerTransport;
 

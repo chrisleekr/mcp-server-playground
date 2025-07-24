@@ -9,6 +9,7 @@ import {
   ToolResult,
 } from '@/tools/types';
 
+import { sendProgressNotification } from '../notification';
 import {
   SystemTimeInput,
   SystemTimeInputSchema,
@@ -132,26 +133,55 @@ function getTimezoneInfo(timezone?: string): string {
 /**
  * System time tool implementation
  */
-async function executeSystemTime(
+async function* executeSystemTime(
   input: SystemTimeInput,
-  _context: ToolContext
-): Promise<ToolResult & { data?: SystemTimeOutput }> {
+  context: ToolContext
+): AsyncGenerator<ToolResult & { data?: SystemTimeOutput }> {
   loggingContext.setContextValue('tool', 'system_time');
   const startTime = Date.now();
+  const progressToken = context.progressToken;
 
   try {
     loggingContext.log('debug', 'Executing system time tool', {
       data: { input },
     });
 
+    // Send progress notification if available
+    if (context.server) {
+      await sendProgressNotification(context.server, {
+        progressToken,
+        progress: 25,
+        total: 100,
+        message: 'Validating input',
+      });
+    }
+
     // Validate input using Zod schema
     const validatedInput = SystemTimeInputSchema.parse(input);
+
+    if (context.server) {
+      await sendProgressNotification(context.server, {
+        progressToken,
+        progress: 50,
+        total: 100,
+        message: 'Getting current time',
+      });
+    }
 
     // Get current time
     const now = new Date();
     const resolvedTimezone = await Promise.resolve(
       getTimezoneInfo(validatedInput.timezone)
     );
+
+    if (context.server) {
+      await sendProgressNotification(context.server, {
+        progressToken,
+        progress: 75,
+        total: 100,
+        message: 'Formatting timestamp',
+      });
+    }
 
     // Format timestamp according to requested format
     const formattedTimestamp = formatTimestamp(
@@ -183,6 +213,15 @@ async function executeSystemTime(
 
     const executionTime = Date.now() - startTime;
 
+    if (context.server) {
+      await sendProgressNotification(context.server, {
+        progressToken,
+        progress: 100,
+        total: 100,
+        message: 'System time tool executed successfully',
+      });
+    }
+
     // Log successful execution
     loggingContext.log('info', 'System time tool executed successfully', {
       format: validatedInput.format,
@@ -190,7 +229,7 @@ async function executeSystemTime(
       executionTime,
     });
 
-    return {
+    yield {
       success: true,
       data: output,
       executionTime,
@@ -208,13 +247,16 @@ async function executeSystemTime(
 
     loggingContext.log('error', 'System time tool execution failed', {
       data: {
-        error: errorMessage,
+        error: {
+          message: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+        },
         input,
         executionTime,
       },
     });
 
-    return {
+    yield {
       success: false,
       error: errorMessage,
       executionTime,
@@ -295,7 +337,7 @@ export const systemTimeTool: Tool<SystemTimeInput, SystemTimeOutput> =
     .tags(['system', 'time', 'utility', 'core'])
     .version('1.0.0')
     .timeout(5000)
-    .implementation(executeSystemTime)
+    .streamingImplementation(executeSystemTime)
     .build();
 
 /**
