@@ -38,7 +38,7 @@ export class ToolLoader {
       this.registerTool(projectTool);
 
       this.loaded = true;
-      loggingContext.log('info', 'Successfully loaded tools1');
+      loggingContext.log('info', 'Successfully loaded tools');
     } catch (error: unknown) {
       loggingContext.log('error', 'Failed to load tools', {
         error: {
