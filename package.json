@@ -1,7 +1,7 @@
 {
   "name": "@chrisleekr/mcp-server-playground",
   "version": "1.0.2",
-  "description": "A MCP (Model Context Protocol) server playground with TypeScript",
+  "description": "A playground for Model Context Protocol (MCP) server built with TypeScript and Streamable HTTP transport",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
