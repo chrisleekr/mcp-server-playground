@@ -1,7 +1,7 @@
 {
   "name": "@chrisleekr/mcp-server-playground",
   "version": "1.0.2",
-  "description": "A MCP (Model Context Protocol) server boilerplate with TypeScript",
+  "description": "A MCP (Model Context Protocol) server playground with TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
