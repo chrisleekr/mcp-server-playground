@@ -58,7 +58,7 @@ async function* executeEchoPrompt(
           role: 'user',
           content: {
             type: 'text',
-            text: `Echo ${message ?? 'my message'}, repeat ${repeat ?? 1} times, ${uppercase !== '' ? `in ${uppercase}` : ''}`,
+            text: `Echo ${message ?? 'my message'}, repeat ${repeat ?? 1} times, ${uppercase !== '' ? `in uppercase` : ''}`,
           },
         },
       ],
