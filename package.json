@@ -1,12 +1,12 @@
 {
-  "name": "@chrisleekr/mcp-server-boilerplate",
+  "name": "@chrisleekr/mcp-server-playground",
   "version": "1.0.2",
-  "description": "A MCP (Model Context Protocol) server boilerplate with TypeScript",
+  "description": "A playground for Model Context Protocol (MCP) server built with TypeScript and Streamable HTTP transport",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
   "bin": {
-    "mcp-server-boilerplate": "dist/index.js"
+    "mcp-server-playground": "dist/index.js"
   },
   "publishConfig": {
     "access": "public",
@@ -27,8 +27,8 @@
     "format:check": "prettier --check .",
     "test": "cross-env TS_NODE_PROJECT=tsconfig.jest.json jest --logHeapUsage",
     "test:watch": "jest --watch",
-    "test:inspector": "npx -y @modelcontextprotocol/inspector --config ./mcp-config.json --server mcp-server-boilerplate-cursor",
-    "docker:build": "docker build -t mcp-server-boilerplate:local . --progress=plain",
+    "test:inspector": "npx -y @modelcontextprotocol/inspector --config ./mcp-config.json --server mcp-server-playground-cursor",
+    "docker:build": "docker build -t mcp-server-playground:local . --progress=plain",
     "docker:run": "./scripts/docker-run.sh"
   },
   "keywords": [
@@ -42,12 +42,12 @@
   "author": "Chris Lee <git@chrislee.kr>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chrisleekr/mcp-server-boilerplate.git"
+    "url": "git+https://github.com/chrisleekr/mcp-server-playground.git"
   },
   "bugs": {
-    "url": "https://github.com/chrisleekr/mcp-server-boilerplate/issues"
+    "url": "https://github.com/chrisleekr/mcp-server-playground/issues"
   },
-  "homepage": "https://github.com/chrisleekr/mcp-server-boilerplate#readme",
+  "homepage": "https://github.com/chrisleekr/mcp-server-playground#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.16.0",
     "axios": "^1.10.0",

@@ -7,12 +7,12 @@ services:
     volumes:
       - valkey-data:/data
     networks:
-      - mcp-server-boilerplate
+      - mcp-server-playground
     restart: unless-stopped
     command: --save 60 1 --loglevel debug
 
-  mcp-server-boilerplate:
-    container_name: mcp-server-boilerplate
+  mcp-server-playground:
+    container_name: mcp-server-playground
     build:
       context: .
       dockerfile: Dockerfile
@@ -20,7 +20,7 @@ services:
     ports:
       - 3000:3000
     networks:
-      - mcp-server-boilerplate
+      - mcp-server-playground
     env_file:
       - .env
     volumes:
@@ -34,5 +34,5 @@ volumes:
     driver: local
 
 networks:
-  mcp-server-boilerplate:
+  mcp-server-playground:
     driver: bridge

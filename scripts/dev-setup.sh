@@ -13,4 +13,4 @@ fi
 
 # Run the container
 docker-compose up -d --build
-docker logs -f mcp-server-boilerplate
+docker logs -f mcp-server-playground

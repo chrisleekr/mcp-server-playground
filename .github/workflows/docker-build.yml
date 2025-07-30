@@ -98,7 +98,7 @@ jobs:
         id: docker-meta
         uses: docker/metadata-action@v5
         with:
-          images: chrisleekr/mcp-server-boilerplate
+          images: chrisleekr/mcp-server-playground
           tags: |
             type=raw,value=${{ env.PACKAGE_VERSION }}
             type=raw,value=latest,enable=${{ env.IS_DEV_RELEASE == 'false' }}
@@ -115,8 +115,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           target: production
-          cache-from: type=registry,ref=chrisleekr/mcp-server-boilerplate:cache
-          cache-to: type=registry,mode=max,ref=chrisleekr/mcp-server-boilerplate:cache
+          cache-from: type=registry,ref=chrisleekr/mcp-server-playground:cache
+          cache-to: type=registry,mode=max,ref=chrisleekr/mcp-server-playground:cache
           build-args: |
             PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
             GIT_HASH=${{ env.GIT_HASH }}
@@ -133,8 +133,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           target: production
-          cache-from: type=registry,ref=chrisleekr/mcp-server-boilerplate:cache
-          cache-to: type=registry,mode=max,ref=chrisleekr/mcp-server-boilerplate:cache
+          cache-from: type=registry,ref=chrisleekr/mcp-server-playground:cache
+          cache-to: type=registry,mode=max,ref=chrisleekr/mcp-server-playground:cache
           build-args: |
             PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
             GIT_HASH=${{ env.GIT_HASH }}
