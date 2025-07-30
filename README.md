@@ -7,7 +7,8 @@ A playground for Model Context Protocol (MCP) server built with TypeScript and S
 - MCP Server implementation: HTTP-Based Streamable transport using `@modelcontextprotocol/sdk` with HTTP transport, session management, and tool execution.
 - OAuth authentication/3rd party authorization: Implements an OAuth server for MCP clients to process 3rd party authorization servers like Auth0, providing Dynamic Application Registration for MCP server.
 - Storage: Provide storage for MCP server to store data like OAuth sessions, tokens, etc.
-- Built-in sample tools: `echo`, `system-time`, `streaming`, `project` for demonstration.
+- Tools: `echo`, `system-time`, `streaming`, `project` for demonstration.
+- Prompts: `echo`
 
 ## Why this project exists?
 

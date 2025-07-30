@@ -2,7 +2,7 @@
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
-import { loggingContext } from '@/core/server/http/context';
+import { loggingContext, sendProgressNotification } from '@/core/server';
 import {
   createResourceLink,
   createStructuredContent,
@@ -14,7 +14,6 @@ import {
 } from '@/tools/types';
 
 import packageJson from '../../../package.json';
-import { sendProgressNotification } from '../notification';
 import { EchoInput, EchoInputSchema, EchoOutput } from './types';
 
 /**

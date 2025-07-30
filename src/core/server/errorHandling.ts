@@ -1,6 +1,6 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 
-import { loggingContext } from './http/context';
+import { loggingContext } from '@/core/server/http/context';
 
 export function setupErrorHandling(server: Server): void {
   server.oninitialized = (): void => {

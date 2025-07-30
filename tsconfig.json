@@ -20,6 +20,7 @@
       "@/types/*": ["src/types/*"],
       "@/core/*": ["src/core/*"],
       "@/config/*": ["src/config/*"],
+      "@/prompts/*": ["src/prompts/*"],
       "@/tools/*": ["src/tools/*"],
       "@/utils/*": ["src/utils/*"]
     },
