@@ -1,6 +1,6 @@
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
-import { loggingContext } from '@/core/server/http/context';
+import { loggingContext, sendProgressNotification } from '@/core/server';
 import {
   Tool,
   ToolBuilder,
@@ -9,7 +9,6 @@ import {
   ToolResult,
 } from '@/tools/types';
 
-import { sendProgressNotification } from '../notification';
 import {
   SystemTimeInput,
   SystemTimeInputSchema,

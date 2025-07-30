@@ -1,9 +1,9 @@
-import { loggingContext } from '@/core/server/http/context';
+import { loggingContext } from '@/core/server';
+import { toolRegistry } from '@/tools/registry';
 import { Tool, ToolDefinition } from '@/tools/types';
 
 import { echoTool } from './echo';
 import { projectTool } from './project';
-import { toolRegistry } from './registry';
 import { streamingTool } from './streaming';
 import { systemTimeTool } from './system-time';
 

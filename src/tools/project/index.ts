@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import zodToJsonSchema from 'zod-to-json-schema';
 
 import { config } from '@/config/manager';
-import { loggingContext } from '@/core/server/http/context';
+import { loggingContext, sendProgressNotification } from '@/core/server';
 import {
   ToolBuilder,
   ToolContext,
@@ -11,7 +11,6 @@ import {
   ToolResult,
 } from '@/tools/types';
 
-import { sendProgressNotification } from '../notification';
 import { ProjectInput, ProjectInputSchema, ProjectOutput } from './types';
 
 async function* executeProject(

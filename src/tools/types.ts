@@ -2,12 +2,11 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { ToolSchema } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 
+import { ProgressToken } from '@/core/server';
+
 /**
  * Tool execution context for dependency injection and configuration
  */
-
-// Refer: https://modelcontextprotocol.io/specification/2025-06-18/basic/utilities/progress
-export type ProgressToken = string | number;
 
 export interface ToolContext {
   config: Record<string, unknown>;

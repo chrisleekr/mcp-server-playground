@@ -1,8 +1,8 @@
 import { Application, NextFunction, Request, Response } from 'express';
 
 import { config } from '@/config/manager';
+import { loggingContext } from '@/core/server/http/context';
 
-import { loggingContext } from '../http/context';
 import { OAuthService } from './services/oauthService';
 import {
   OAuthServiceAuthorizationServer,
@@ -45,7 +45,10 @@ export function requireAuth(): (
     try {
       // Use the server issuer as the expected audience for MCP endpoints
       const expectedAudience = config.server.auth.issuer;
-      const result = await oauthService.validateAccessToken(token, expectedAudience);
+      const result = await oauthService.validateAccessToken(
+        token,
+        expectedAudience
+      );
       if (!result.valid) {
         loggingContext.log('warn', 'Invalid token', { token });
         res.status(401).json({ error: 'Unauthorized - Invalid token' });

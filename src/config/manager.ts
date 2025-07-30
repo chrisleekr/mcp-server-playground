@@ -1,4 +1,5 @@
 import { AppConfig } from '@/config/type';
+// Must import loggingContext from here to avoid circular dependency
 import { loggingContext } from '@/core/server/http/context';
 
 import packageJson from '../../package.json';
@@ -48,6 +49,23 @@ export class ConfigManager {
       tools: {
         project: {
           path: '/tmp',
+        },
+        aws: {
+          region: 'us-east-1',
+          profile: 'default',
+          credentials: {
+            accessKeyId: null,
+            secretAccessKey: null,
+          },
+          bedrock: {
+            region: 'us-east-1',
+            profile: 'default',
+            credentials: {
+              accessKeyId: null,
+              secretAccessKey: null,
+            },
+            model: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
+          },
         },
       },
     };

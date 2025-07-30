@@ -4,13 +4,15 @@ import express from 'express';
 import { config } from '@/config/manager';
 import { setupErrorHandling } from '@/core/server/errorHandling';
 import { setupHttpServer } from '@/core/server/http';
+import { loggingContext } from '@/core/server/http/context';
+import { loadPrompts, setupPromptsHandlers } from '@/core/server/prompts';
 import { loadTools, setupToolHandlers } from '@/core/server/tools';
+import { PromptContext } from '@/prompts/types';
 import { ToolContext } from '@/tools/types';
-
-import { loggingContext } from './server/http/context';
 
 export class MCPServer {
   private server: Server;
+  private promptContext: PromptContext;
   private toolContext: ToolContext;
   private httpServer: express.Application | null = null;
 
@@ -22,6 +24,9 @@ export class MCPServer {
       },
       {
         capabilities: {
+          prompts: {
+            listChanged: true,
+          },
           logging: {
             level: 'debug',
           },
@@ -36,15 +41,22 @@ export class MCPServer {
       }
     );
 
+    this.promptContext = {
+      server: this.server,
+      progressToken: '', // Placeholder for progress token
+    };
+    setupPromptsHandlers(this.promptContext);
+    loadPrompts();
+
     this.toolContext = {
       config: {},
       server: this.server,
       progressToken: '', // Placeholder for progress token
     };
-
     setupToolHandlers(this.toolContext);
-    setupErrorHandling(this.server);
     loadTools();
+
+    setupErrorHandling(this.server);
   }
 
   public start(): void {

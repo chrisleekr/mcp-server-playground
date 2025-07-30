@@ -58,6 +58,23 @@ export const ToolsConfigSchema = z.object({
   project: z.object({
     path: z.string(),
   }),
+  aws: z.object({
+    region: z.string(),
+    profile: z.string().nullable(),
+    credentials: z.object({
+      accessKeyId: z.string().nullable(),
+      secretAccessKey: z.string().nullable(),
+    }),
+    bedrock: z.object({
+      region: z.string(),
+      profile: z.string().nullable(),
+      credentials: z.object({
+        accessKeyId: z.string().nullable(),
+        secretAccessKey: z.string().nullable(),
+      }),
+      model: z.string(),
+    }),
+  }),
 });
 
 export type ToolsConfig = z.infer<typeof ToolsConfigSchema>;

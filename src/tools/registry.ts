@@ -1,7 +1,7 @@
 import { Tool, ToolDefinition } from '@/tools/types';
 
 /**
- * Simple tool registry implementation
+ * Tool registry implementation
  */
 export class ToolRegistry {
   private tools = new Map<string, Tool>();

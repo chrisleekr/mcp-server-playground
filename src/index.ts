@@ -4,7 +4,7 @@ import 'dotenv/config';
 
 import { config } from '@/config/manager';
 import { MCPServer } from '@/core/mcpServer';
-import { loggingContext } from '@/core/server/http/context';
+import { loggingContext } from '@/core/server';
 
 function main(): void {
   try {
