@@ -1,6 +1,6 @@
-# MCP Server Boilerplate
+# MCP Server Playground
 
-A comprehensive Model Context Protocol (MCP) server boilerplate built with TypeScript and Streamable HTTP transport with an OAuth Proxy for 3rd party authorization servers like Auth0.
+A playground for Model Context Protocol (MCP) server built with TypeScript and Streamable HTTP transport with an OAuth Proxy for 3rd party authorization servers like Auth0.
 
 ## Features
 
@@ -39,7 +39,7 @@ A comprehensive Model Context Protocol (MCP) server boilerplate built with TypeS
 
    ```bash
    git clone <your-repo>
-   cd mcp-server-boilerplate
+   cd mcp-server-playground
    ```
 
 2. Install dependencies:
@@ -65,7 +65,7 @@ A comprehensive Model Context Protocol (MCP) server boilerplate built with TypeS
 ```bash
 helm repo add chrisleekr https://chrisleekr.github.io/helm-charts/
 helm repo update
-helm install mcp-server-boilerplate chrisleekr/mcp-server-boilerplate
+helm install mcp-server-playground chrisleekr/mcp-server-playground
 ```
 
 ### Set up the MCP server for Cursor
@@ -77,7 +77,7 @@ helm install mcp-server-boilerplate chrisleekr/mcp-server-boilerplate
    ```json
    {
      "mcpServers": {
-       "mcp-server-boilerplate-cursor": {
+       "mcp-server-playground-cursor": {
          "type": "http",
          "url": "http://localhost:3000/mcp"
        }
@@ -97,7 +97,7 @@ helm install mcp-server-boilerplate chrisleekr/mcp-server-boilerplate
    npm run docker:run
 
    # Then run the inspector
-   npx @modelcontextprotocol/inspector -y --config ./mcp-config.json --server mcp-server-boilerplate-cursor
+   npx @modelcontextprotocol/inspector -y --config ./mcp-config.json --server mcp-server-playground-cursor
    ```
 
    or
@@ -126,7 +126,7 @@ helm install mcp-server-boilerplate chrisleekr/mcp-server-boilerplate
    - Click on "APIs"
    - Click on "Create API"
      - Name: MCP Server Boilerplate
-     - Identifier: `urn:mcp-server-boilerplate`
+     - Identifier: `urn:mcp-server-playground`
      - JSON Web Token (JWT) Profile: Auth0
      - JSON Web Token (JWT) Signature Algorithm: RS256
    - Click on "Create"
