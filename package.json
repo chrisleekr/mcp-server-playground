@@ -52,7 +52,7 @@
     "@aws-sdk/client-bedrock": "3.858.0",
     "@aws-sdk/client-ecs": "3.858.0",
     "@aws-sdk/client-s3": "3.856.0",
-    "@modelcontextprotocol/sdk": "1.17.0",
+    "@modelcontextprotocol/sdk": "1.17.1",
     "axios": "1.11.0",
     "base64url": "3.0.1",
     "crypto-js": "4.2.0",
