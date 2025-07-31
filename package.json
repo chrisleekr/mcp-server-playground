@@ -72,7 +72,7 @@
     "@commitlint/cli": "19.8.1",
     "@commitlint/config-conventional": "19.8.1",
     "@eslint/js": "9.32.0",
-    "@rspack/cli": "1.4.10",
+    "@rspack/cli": "1.4.11",
     "@rspack/core": "1.4.10",
     "@types/express": "5.0.3",
     "@types/jest": "30.0.0",
