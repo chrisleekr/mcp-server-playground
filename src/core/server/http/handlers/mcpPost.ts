@@ -1,4 +1,5 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { randomUUID } from 'node:crypto';
+
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import express from 'express';
@@ -18,7 +19,6 @@ function getSessionId(req: express.Request): string | undefined {
 
 export function setupMCPPostHandler(
   app: express.Application,
-  server: Server,
   transportManager: TransportManager
 ): void {
   // Handle MCP POST requests (Streamable HTTP)
@@ -29,7 +29,7 @@ export function setupMCPPostHandler(
         const sessionId = getSessionId(req);
 
         loggingContext.log('debug', 'POST /mcp request body', {
-          data: { requestBody, sessionId },
+          data: { requestBody },
         });
 
         let transport: StreamableHTTPServerTransport;
@@ -37,39 +37,37 @@ export function setupMCPPostHandler(
         if (
           sessionId !== undefined &&
           sessionId.trim() !== '' &&
-          transportManager.hasTransport(sessionId)
+          (await transportManager.hasTransport(sessionId))
         ) {
+          loggingContext.log('debug', 'Found session, getting transport');
           // Reuse existing transport
-          const existingTransport = transportManager.getTransport(sessionId);
+          const existingTransport =
+            await transportManager.getTransport(sessionId);
           if (!existingTransport) {
             loggingContext.log(
               'error',
-              'Transport not found despite has() check',
-              {
-                data: { sessionId },
-              }
+              'Transport not found despite has() check'
             );
             throw new Error('Transport not found despite has() check');
           }
+          loggingContext.log(
+            'debug',
+            'Transport found, using existing transport'
+          );
           transport = existingTransport;
         } else if (
           sessionId === undefined &&
           isInitializeRequest(requestBody)
         ) {
+          loggingContext.log('debug', 'No session found, creating new session');
           // New initialization request
-          transport = transportManager.createTransport();
+          const newSessionId = randomUUID();
 
-          // Connect the transport to the server
-          await server.connect(
-            transport as StreamableHTTPServerTransport & { sessionId: string }
-          );
+          transport = await transportManager.createTransport(newSessionId);
         } else {
           loggingContext.log(
             'error',
-            'Invalid request: missing session ID or not an initialization request',
-            {
-              data: { sessionId },
-            }
+            'Invalid request: missing session ID or not an initialization request'
           );
           res.status(400).json({
             error:
@@ -79,6 +77,7 @@ export function setupMCPPostHandler(
         }
 
         await transport.handleRequest(req, res, requestBody);
+        loggingContext.log('debug', 'Request handled');
         return;
       } catch (error) {
         loggingContext.log('error', 'Error handling HTTP request', {
