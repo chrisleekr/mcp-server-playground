@@ -1,4 +1,3 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import express from 'express';
 
 import { TransportManager } from '../transport';
@@ -9,7 +8,6 @@ import { setupPingHandler } from './handlers/ping';
 
 export function setupRequestHandlers(
   app: express.Application,
-  server: Server,
   transportManager: TransportManager
 ): void {
   app.get('/', (_req, res) => {
@@ -18,8 +16,8 @@ export function setupRequestHandlers(
   });
 
   setupPingHandler(app);
-  setupMCPPostHandler(app, server, transportManager);
-  setupMCPDeleteHandler(app, server, transportManager);
+  setupMCPPostHandler(app, transportManager);
+  setupMCPDeleteHandler(app, transportManager);
 
   loggingContext.log('info', 'Request handlers setup complete');
 }

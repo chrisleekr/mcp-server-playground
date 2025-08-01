@@ -47,4 +47,8 @@ export class ValkeyStorage implements Storage {
     const keys = await this.client.keys(pattern);
     return keys.map(key => key.replace(pattern, ''));
   }
+
+  async length(): Promise<number> {
+    return this.client.dbsize();
+  }
 }

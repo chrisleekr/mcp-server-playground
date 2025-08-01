@@ -1,4 +1,3 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import express from 'express';
 
 import type { TransportManager } from '@/core/server/transport';
@@ -7,7 +6,6 @@ import { loggingContext } from '../context';
 
 export function setupMCPDeleteHandler(
   app: express.Application,
-  _server: Server,
   transportManager: TransportManager
 ): void {
   // Handle MCP DELETE requests (session termination)
@@ -21,31 +19,26 @@ export function setupMCPDeleteHandler(
         if (
           sessionId === undefined ||
           sessionId.trim() === '' ||
-          !transportManager.hasTransport(sessionId)
+          !(await transportManager.hasTransport(sessionId))
         ) {
-          loggingContext.log('error', 'Session not found', {
-            data: { sessionId },
-          });
+          loggingContext.log('error', 'Session not found');
           res.status(200).json({ error: 'Session not found' }); // Return 200 to gracefully handle the request
           return;
         }
 
-        const transport = transportManager.getTransport(sessionId);
+        loggingContext.log('debug', 'Found session, getting transport');
+        const transport = await transportManager.getTransport(sessionId);
         if (!transport) {
-          loggingContext.log('error', 'Transport not found', {
-            data: { sessionId },
-          });
+          loggingContext.log('error', 'Transport not found');
           res.status(200).json({ error: 'Transport not found' }); // Return 200 to gracefully handle the request
           return;
         }
         await transport.handleRequest(req, res);
 
         // Clean up the transport
-        transportManager.deleteTransport(sessionId);
+        await transportManager.deleteTransport(sessionId);
 
-        loggingContext.log('info', 'Session terminated', {
-          data: { sessionId },
-        });
+        loggingContext.log('info', 'Session terminated');
       } catch (error: unknown) {
         loggingContext.log('error', 'Error handling DELETE request', {
           data: {

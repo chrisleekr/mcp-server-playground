@@ -35,4 +35,8 @@ export class MemoryStorage implements Storage {
   async keys(pattern: string): Promise<string[]> {
     return Array.from(this.store.keys()).filter(key => key.startsWith(pattern));
   }
+
+  async length(): Promise<number> {
+    return this.store.size;
+  }
 }

@@ -8,13 +8,13 @@ import { setupMiddleware } from './middleware';
 
 export function setupHttpServer(server: Server): express.Application {
   const app = express();
-  const transportManager = new TransportManager();
+  const transportManager = new TransportManager(server);
 
   // Setup middleware
   setupMiddleware(app);
 
   // Setup request handlers
-  setupRequestHandlers(app, server, transportManager);
+  setupRequestHandlers(app, transportManager);
 
   // Setup auth handlers
   setupAuthHandlers(app);
