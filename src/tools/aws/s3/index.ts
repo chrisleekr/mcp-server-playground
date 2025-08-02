@@ -25,7 +25,7 @@ async function* executeAWSS3(
   const startTime = Date.now();
 
   try {
-    loggingContext.log('debug', 'Executing echo tool', { data: { input } });
+    loggingContext.log('debug', 'Executing AWS S3 tool', { data: { input } });
 
     // Send mid-progress notification
     if (context.server) {
@@ -33,7 +33,7 @@ async function* executeAWSS3(
         progressToken,
         progress: 0,
         total: 100,
-        message: 'Starting echo tool',
+        message: 'Starting AWS S3 tool',
       });
     }
 
