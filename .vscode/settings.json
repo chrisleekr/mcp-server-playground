@@ -40,6 +40,7 @@
   },
   "cSpell.language": "en-US",
   "cSpell.words": [
+    "AWSS",
     "buildkitd",
     "buildx",
     "CERTDIR",
@@ -55,6 +56,7 @@
     "modelcontextprotocol",
     "oninitialized",
     "PKCE",
+    "resumability",
     "rspack",
     "Streamable",
     "tsparser",
