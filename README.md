@@ -7,6 +7,7 @@ A playground for Model Context Protocol (MCP) server built with TypeScript and S
 - MCP Server implementation: HTTP-Based Streamable transport using `@modelcontextprotocol/sdk` with HTTP transport, session management, and tool execution.
 - OAuth authentication/3rd party authorization: Implements an OAuth server for MCP clients to process 3rd party authorization servers like Auth0, providing Dynamic Application Registration for MCP server.
 - Storage: Provide storage for MCP server to store data like OAuth sessions, tokens, etc.
+- Session Management: Support stateful sessions by using replay of initial request.
 - Tools: `echo`, `system-time`, `streaming`, `project` for demonstration.
 - Prompts: `echo`
 
@@ -131,6 +132,20 @@ helm install mcp-server-playground chrisleekr/mcp-server-playground
      - JSON Web Token (JWT) Profile: Auth0
      - JSON Web Token (JWT) Signature Algorithm: RS256
    - Click on "Create"
+
+## How to make stateful session with multiple MCP Server instances?
+
+When the MCP server is deployed as a cluster, it is not possible to make it stateful with multiple MCP Server instances because the transport is not shared between instances by design.
+
+To make it truly stateful, I used Valkey to store the session id with the initial request.
+
+When the request comes in to alternative MCP server instance, it will check if the session id is in the Valkey. If it is, it will replay the initial request and connect the transport to the server.
+
+Inspired from [https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/102](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/102)
+
+The below diagram shows the flow of the stateful session management.
+
+<img width="681" height="882" alt="Image" src="https://github.com/user-attachments/assets/7f56339e-2665-47cb-a882-69d3c7096b47" />
 
 ## TODO
 

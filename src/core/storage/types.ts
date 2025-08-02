@@ -4,4 +4,5 @@ export interface Storage {
   delete(key: string): Promise<boolean>;
   keys(pattern: string): Promise<string[]>;
   close(): Promise<void>;
+  length(): Promise<number>;
 }

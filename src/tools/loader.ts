@@ -2,6 +2,7 @@ import { loggingContext } from '@/core/server';
 import { toolRegistry } from '@/tools/registry';
 import { Tool, ToolDefinition } from '@/tools/types';
 
+import { awsS3Tool } from './aws/s3';
 import { echoTool } from './echo';
 import { projectTool } from './project';
 import { streamingTool } from './streaming';
@@ -36,6 +37,9 @@ export class ToolLoader {
 
       // Register project tool
       this.registerTool(projectTool);
+
+      // Register AWS S3 tool
+      this.registerTool(awsS3Tool);
 
       this.loaded = true;
       loggingContext.log('info', 'Successfully loaded tools');
