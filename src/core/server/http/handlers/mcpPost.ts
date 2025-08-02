@@ -37,37 +37,64 @@ export function setupMCPPostHandler(
         if (
           sessionId !== undefined &&
           sessionId.trim() !== '' &&
-          (await transportManager.hasTransport(sessionId))
+          (await transportManager.hasSession(sessionId))
         ) {
-          loggingContext.log('debug', 'Found session, getting transport');
-          // Reuse existing transport
-          const existingTransport =
-            await transportManager.getTransport(sessionId);
-          if (!existingTransport) {
+          loggingContext.log('debug', 'Session exists, checking transport', {
+            data: { sessionId },
+          });
+          // If transport exists in this server, then use the existing transport.
+          // If transport does not exist in this server, then reply initial request and create a new transport based on the sessionId.
+          if (transportManager.hasTransport(sessionId)) {
             loggingContext.log(
-              'error',
-              'Transport not found despite has() check'
+              'debug',
+              'Found transport in this server, using existing transport'
             );
-            throw new Error('Transport not found despite has() check');
+            // Reuse existing transport
+            const existingTransport = transportManager.getTransport(sessionId);
+            if (!existingTransport) {
+              loggingContext.log(
+                'error',
+                'Transport not found despite has() check'
+              );
+              throw new Error('Transport not found despite has() check');
+            }
+            transport = existingTransport;
+          } else {
+            loggingContext.log(
+              'debug',
+              'No transport found in this server, replay initial request'
+            );
+            // Setup a new transport for the session
+            transport = await transportManager.replayInitialRequest(sessionId);
           }
-          loggingContext.log(
-            'debug',
-            'Transport found, using existing transport'
-          );
-          transport = existingTransport;
         } else if (
-          sessionId === undefined &&
+          (sessionId === undefined || sessionId.trim() === '') &&
           isInitializeRequest(requestBody)
         ) {
           loggingContext.log('debug', 'No session found, creating new session');
           // New initialization request
           const newSessionId = randomUUID();
 
-          transport = await transportManager.createTransport(newSessionId);
+          transport = transportManager.createTransport(newSessionId);
+
+          // Save the initial request to the session
+          await transportManager.saveSession(newSessionId, {
+            initialRequest: requestBody,
+          });
+
+          // Connect the transport to the server
+          loggingContext.log('debug', 'Connecting transport to server');
+          await transportManager.getServer().connect(transport);
         } else {
           loggingContext.log(
             'error',
-            'Invalid request: missing session ID or not an initialization request'
+            'Invalid request: missing session ID or not an initialization request',
+            {
+              data: {
+                sessionId,
+                requestBody,
+              },
+            }
           );
           res.status(400).json({
             error:
@@ -76,6 +103,12 @@ export function setupMCPPostHandler(
           return;
         }
 
+        loggingContext.log('debug', 'Handling request', {
+          data: {
+            sessionId,
+            requestBody,
+          },
+        });
         await transport.handleRequest(req, res, requestBody);
         loggingContext.log('debug', 'Request handled');
         return;

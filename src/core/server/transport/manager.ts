@@ -1,5 +1,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import type express from 'express';
 
 import { config } from '@/config/manager';
 import { createStorage } from '@/core/storage/storageFactory';
@@ -8,10 +10,16 @@ import { Storage } from '@/core/storage/types';
 import { loggingContext } from '../http/context';
 
 export class TransportManager {
+  // MCP server instance.
   private server: Server;
+
+  // Storage for session data to keep track of the initial request.
   private storage: Storage;
+
+  // Map of sessionId to transport in this server memory.
   private transports: Map<string, StreamableHTTPServerTransport> = new Map();
 
+  // Prefix for the session data cache key.
   private readonly CACHE_KEY_PREFIX = 'mcp-session';
 
   constructor(server: Server) {
@@ -28,42 +36,12 @@ export class TransportManager {
     }
   }
 
-  public async getTransport(
-    sessionId: string
-  ): Promise<StreamableHTTPServerTransport | undefined> {
-    loggingContext.log('debug', 'Getting transport', {
-      data: { sessionId },
-    });
-
-    // If storage contains sessionId, then check transports with sessionId. If not, then create a new transport with sessionId.
-    const session = await this.storage.get(
-      `${this.CACHE_KEY_PREFIX}:${sessionId}`
-    );
-    if (session !== null && session.trim() !== '') {
-      if (this.transports.has(sessionId)) {
-        loggingContext.log('debug', 'Transport found in transports', {
-          data: { sessionId },
-        });
-        return this.transports.get(sessionId);
-      }
-
-      // It exists in storage, but not in transports. Create a new transport with sessionId.
-      loggingContext.log(
-        'debug',
-        'Transport not found in transports, creating new transport'
-      );
-      const newTransport = await this.createTransport(sessionId);
-      this.transports.set(sessionId, newTransport);
-
-      return newTransport;
-    }
-
-    // If session is not found, then return undefined.
-    return undefined;
+  public getServer(): Server {
+    return this.server;
   }
 
-  public async hasTransport(sessionId: string): Promise<boolean> {
-    loggingContext.log('debug', 'Checking if transport exists', {
+  public async hasSession(sessionId: string): Promise<boolean> {
+    loggingContext.log('debug', 'Checking if session exists', {
       data: { sessionId },
     });
     const session = await this.storage.get(
@@ -72,9 +50,87 @@ export class TransportManager {
     return session !== null && session.trim() !== '';
   }
 
-  public async createTransport(
+  public async saveSession(
+    sessionId: string,
+    sessionData: {
+      initialRequest: InitializeRequest;
+    }
+  ): Promise<void> {
+    // TODO: Make this to be expired after a certain time.
+    await this.storage.set(
+      `${this.CACHE_KEY_PREFIX}:${sessionId}`,
+      JSON.stringify(sessionData)
+    );
+  }
+
+  public hasTransport(sessionId: string): boolean {
+    return this.transports.has(sessionId);
+  }
+
+  public getTransport(
+    sessionId: string
+  ): StreamableHTTPServerTransport | undefined {
+    return this.transports.get(sessionId);
+  }
+
+  public async replayInitialRequest(
     sessionId: string
   ): Promise<StreamableHTTPServerTransport> {
+    const session = await this.storage.get(
+      `${this.CACHE_KEY_PREFIX}:${sessionId}`
+    );
+    if (session === null || session.trim() === '') {
+      throw new Error('Session not found');
+    }
+    const sessionData = JSON.parse(session) as {
+      initialRequest: InitializeRequest;
+    };
+    loggingContext.log('debug', 'Replaying initial request', {
+      data: { sessionData },
+    });
+
+    const transport = this.createTransport(sessionId);
+
+    // Replay initial request with dummy request and response.
+    // This is to simulate the initial request and response.
+    await transport.handleRequest(
+      {
+        method: 'POST',
+        url: '/mcp',
+        headers: {
+          accept: ['application/json', 'text/event-stream'],
+          'content-type': ['application/json', 'text/event-stream'],
+        },
+        body: JSON.stringify(sessionData.initialRequest),
+      } as unknown as express.Request,
+      {
+        on: () => {},
+        writeHead: () => {
+          return {
+            end: () => {},
+          } as unknown as express.Response;
+        },
+      } as unknown as express.Response,
+      sessionData.initialRequest
+    );
+
+    loggingContext.log(
+      'debug',
+      'Initial request replayed, connecting transport',
+      {
+        data: {
+          sessionId,
+          transportCount: this.transports.size,
+        },
+      }
+    );
+
+    await this.server.connect(transport);
+
+    return transport;
+  }
+
+  public createTransport(sessionId: string): StreamableHTTPServerTransport {
     const transport = new StreamableHTTPServerTransport({
       /**
        * Function that generates a session ID for the transport.
@@ -82,42 +138,43 @@ export class TransportManager {
        *
        * Return undefined to disable session management.
        */
-      // This is disabled to make stateless mode.
-      sessionIdGenerator: undefined,
-      // Below is for stateful mode.
-      // sessionIdGenerator: (): string => sessionId,
+      sessionIdGenerator: (): string => sessionId,
+
       /**
        * If true, the server will return JSON responses instead of starting an SSE stream.
        * This can be useful for simple request/response scenarios without streaming.
        * Default is false (SSE streams are preferred).
        */
       enableJsonResponse: false,
+      /**
+       * TODO: Make custom event store for persistent storage.
+       * Event store for resumability support
+       * If provided, resumability will be enabled, allowing clients to reconnect and resume messages
+       */
+      // eventStore?: EventStore;
     });
 
-    // Manually set the session ID to ensure it's available
-    transport.sessionId = sessionId;
     loggingContext.log('debug', 'Creating transport', {
       data: { sessionId },
     });
 
     this.transports.set(sessionId, transport);
-    await this.storage.set(
-      `${this.CACHE_KEY_PREFIX}:${sessionId}`,
-      JSON.stringify({
-        createdAt: new Date().toISOString(),
-      })
-    );
 
-    loggingContext.log('debug', 'Transport created');
+    loggingContext.log('debug', 'Transport created', {
+      data: {
+        sessionId: transport.sessionId,
+      },
+    });
 
     // Set up cleanup handler
     transport.onclose = (): void => {
       const currentSessionId = transport.sessionId;
       if (currentSessionId !== undefined && currentSessionId.trim() !== '') {
         this.transports.delete(currentSessionId);
-        void this.storage.delete(
-          `${this.CACHE_KEY_PREFIX}:${currentSessionId}`
-        );
+        // Shouldn't delete the session data from storage to avoid sunset server deleting the session data.
+        // void this.storage.delete(
+        //   `${this.CACHE_KEY_PREFIX}:${currentSessionId}`
+        // );
         loggingContext.log('debug', 'Transport closed and cleaned up', {
           data: {
             transportCount: this.transports.size,
@@ -125,12 +182,6 @@ export class TransportManager {
         });
       }
     };
-
-    // Connect the transport to the server
-    loggingContext.log('debug', 'Connecting transport to server');
-    await this.server.connect(
-      transport as StreamableHTTPServerTransport & { sessionId: string }
-    );
 
     return transport;
   }

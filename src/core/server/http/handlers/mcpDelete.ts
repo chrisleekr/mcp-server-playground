@@ -19,7 +19,7 @@ export function setupMCPDeleteHandler(
         if (
           sessionId === undefined ||
           sessionId.trim() === '' ||
-          !(await transportManager.hasTransport(sessionId))
+          !(await transportManager.hasSession(sessionId))
         ) {
           loggingContext.log('error', 'Session not found');
           res.status(200).json({ error: 'Session not found' }); // Return 200 to gracefully handle the request
@@ -27,7 +27,7 @@ export function setupMCPDeleteHandler(
         }
 
         loggingContext.log('debug', 'Found session, getting transport');
-        const transport = await transportManager.getTransport(sessionId);
+        const transport = transportManager.getTransport(sessionId);
         if (!transport) {
           loggingContext.log('error', 'Transport not found');
           res.status(200).json({ error: 'Transport not found' }); // Return 200 to gracefully handle the request
