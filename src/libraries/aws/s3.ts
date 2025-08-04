@@ -14,18 +14,40 @@ import { getCredentials } from './authentication';
 const regionClients: Map<string, S3Client> = new Map();
 
 // Get region-specific S3 client
-export function getS3ClientForRegion(region: string): S3Client | null {
+export function getS3ClientForRegion(region: string): S3Client {
   if (regionClients.has(region)) {
-    return regionClients.get(region) ?? null;
+    const client = regionClients.get(region);
+    if (!client) {
+      throw new Error(
+        `S3 client for region ${region} was unexpectedly undefined`
+      );
+    }
+    return client;
   }
 
-  const client = new S3Client({
-    region,
-    credentials: getCredentials(),
-  });
+  try {
+    const client = new S3Client({
+      region,
+      credentials: getCredentials(),
+    });
 
-  regionClients.set(region, client);
-  return client;
+    regionClients.set(region, client);
+    return client;
+  } catch (error) {
+    loggingContext.log('error', 'Failed to create S3 client for region', {
+      data: {
+        region,
+        error: {
+          message: error instanceof Error ? error.message : String(error),
+          name: error instanceof Error ? error.name : 'UnknownError',
+          stack: error instanceof Error ? error.stack : undefined,
+        },
+      },
+    });
+    throw new Error(
+      `Failed to create S3 client for region ${region}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 // ListBuckets - https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/command/ListBucketsCommand/
@@ -39,12 +61,6 @@ export function listBuckets({
   prefix,
 }: ListBucketsParams): Promise<ListBucketsCommandOutput> {
   const s3Client = getS3ClientForRegion(config.tools.aws.region);
-
-  if (!s3Client) {
-    throw new Error(
-      `No S3 client found for region: ${config.tools.aws.region}`
-    );
-  }
 
   loggingContext.log('info', 'Listing buckets', {
     data: { maxBuckets, prefix },
@@ -71,10 +87,6 @@ export function listObjectsV2({
   region,
 }: ListObjectsV2Params): Promise<ListObjectsV2CommandOutput> {
   const s3Client = getS3ClientForRegion(region ?? config.tools.aws.region);
-
-  if (!s3Client) {
-    throw new Error(`No S3 client found for region: ${region}`);
-  }
 
   loggingContext.log('info', 'Listing objects', {
     data: { bucket, prefix },
