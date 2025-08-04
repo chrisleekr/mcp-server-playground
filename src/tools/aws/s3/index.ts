@@ -1,6 +1,8 @@
+/* eslint-disable max-lines-per-function */
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { loggingContext, sendProgressNotification } from '@/core/server';
+import { listBuckets, listObjectsV2 } from '@/libraries/aws';
 import {
   createStructuredContent,
   Tool,
@@ -11,7 +13,13 @@ import {
 } from '@/tools/types';
 
 import packageJson from '../../../../package.json';
-import { AWSS3Input, AWSS3InputSchema, AWSS3Output } from './types';
+import {
+  AWSS3Input,
+  AWSS3InputSchema,
+  AWSS3Output,
+  AWSS3OutputSchema,
+  BucketWithObjects,
+} from './types';
 
 async function* executeAWSS3(
   input: AWSS3Input,
@@ -40,7 +48,50 @@ async function* executeAWSS3(
     // Validate input using Zod schema
     const validatedInput = AWSS3InputSchema.parse(input);
 
-    // TODO: Do something
+    // Get S3 client
+    let buckets: BucketWithObjects[] = [];
+
+    switch (validatedInput.operation) {
+      case 'listBuckets':
+        buckets =
+          (
+            await listBuckets({
+              prefix: validatedInput.bucketPrefix,
+            })
+          ).Buckets ?? [];
+
+        break;
+      case 'listObjects':
+        buckets =
+          (
+            await listBuckets({
+              prefix: validatedInput.bucketPrefix,
+            })
+          ).Buckets ?? [];
+
+        // Loop buckets and get objects
+        for (const [index, bucket] of buckets.entries()) {
+          loggingContext.log('info', 'Listing objects', {
+            data: { bucket },
+          });
+
+          buckets[index] = {
+            ...bucket,
+            objects:
+              (
+                await listObjectsV2({
+                  bucket: bucket.Name ?? '',
+                  region: bucket.BucketRegion ?? '',
+                  prefix: validatedInput.keyPrefix,
+                })
+              ).Contents ?? [],
+          };
+        }
+
+        break;
+    }
+
+    loggingContext.log('info', 'Buckets', { data: { buckets } });
 
     if (context.server) {
       await sendProgressNotification(context.server, {
@@ -51,11 +102,22 @@ async function* executeAWSS3(
       });
     }
 
-    // TODO: Prepare output
-    const output: AWSS3Output = {
-      bucket: validatedInput.bucket,
-      key: validatedInput.key,
-      content: 'Hello, world!',
+    const output: AWSS3Output['structuredContent']['content'] = {
+      buckets: buckets.map(bucket => ({
+        name: bucket.Name ?? '',
+        creationDate: bucket.CreationDate?.toISOString() ?? '',
+        objects:
+          bucket.objects?.map(object => ({
+            key: object.Key ?? '',
+            lastModified: object.LastModified?.toISOString() ?? '',
+            size: object.Size ?? 0,
+            storageClass: object.StorageClass ?? '',
+            owner: {
+              displayName: object.Owner?.DisplayName ?? '',
+              id: object.Owner?.ID ?? '',
+            },
+          })) ?? [],
+      })),
     };
 
     // Create a resource link
@@ -64,31 +126,14 @@ async function* executeAWSS3(
     // Create structured content for the new MCP spec
     const structuredOutput = createStructuredContent(
       output,
-      {
-        type: 'object',
-        properties: {
-          bucket: {
-            type: 'string',
-            description: 'The name of the S3 bucket',
-          },
-          key: {
-            type: 'string',
-            description: 'The key of the S3 object',
-          },
-          content: {
-            type: 'string',
-            description: 'The content of the S3 object',
-          },
-        },
-        required: ['bucket', 'key', 'content'],
-      },
+      zodToJsonSchema(AWSS3OutputSchema.shape.structuredContent.shape.content),
       'json'
     );
 
     loggingContext.log('info', 'AWS S3 tool executed successfully', {
       data: {
-        bucket: input.bucket,
-        key: input.key,
+        bucketPrefix: input.bucketPrefix,
+        keyPrefix: input.keyPrefix,
         executionTime,
       },
     });
@@ -101,7 +146,6 @@ async function* executeAWSS3(
         toolVersion: packageJson.version,
         mcpSpecVersion: '2025-06-18',
       },
-      data: output,
       structuredContent: structuredOutput,
     };
   } catch (error) {
@@ -139,37 +183,44 @@ async function* executeAWSS3(
 export const awsS3Tool: Tool<AWSS3Input, AWSS3Output> = new ToolBuilder<
   AWSS3Input,
   AWSS3Output
->('aws-s3')
-  .description('Get the content of an S3 object')
+>('aws_s3')
+  .description('Get the list of S3 buckets and objects')
   .inputSchema(zodToJsonSchema(AWSS3InputSchema) as typeof ToolInputSchema)
-  .outputSchema({
-    type: 'object',
-    properties: {
-      bucket: { type: 'string', description: 'The name of the S3 bucket' },
-      key: { type: 'string', description: 'The key of the S3 object' },
-      content: { type: 'string', description: 'The content of the S3 object' },
-    },
-  })
+  .outputSchema(zodToJsonSchema(AWSS3OutputSchema))
   .examples([
     {
-      input: { bucket: 'my-bucket', key: 'my-key' },
+      input: { operation: 'listBuckets', bucketPrefix: 'my-bucket' },
       output: {
         success: true,
-        data: {
-          bucket: 'my-bucket',
-          key: 'my-key',
-          content: 'Hello, world!',
-        },
         structuredContent: {
           type: 'structured',
           content: {
-            bucket: 'my-bucket',
-            key: 'my-key',
-            content: 'Hello, world!',
+            buckets: [
+              {
+                name: 'my-bucket',
+                creationDate: '2021-01-01',
+                objects: [
+                  {
+                    key: 'my-key',
+                    lastModified: '2021-01-01',
+                    size: 100,
+                    storageClass: 'STANDARD',
+                    owner: {
+                      displayName: 'my-owner',
+                      id: 'my-id',
+                    },
+                  },
+                ],
+              },
+            ],
           },
+          schema: zodToJsonSchema(
+            AWSS3OutputSchema.shape.structuredContent.shape.schema
+          ),
+          format: 'json',
         },
       },
-      description: 'Get the content of an S3 object',
+      description: 'Get the list of S3 buckets and objects',
     },
   ])
   .tags(['aws', 's3', 'storage'])

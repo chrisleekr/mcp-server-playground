@@ -56,6 +56,7 @@ export class ConfigManager {
           credentials: {
             accessKeyId: null,
             secretAccessKey: null,
+            sessionToken: null,
           },
           bedrock: {
             region: 'us-east-1',
@@ -63,6 +64,7 @@ export class ConfigManager {
             credentials: {
               accessKeyId: null,
               secretAccessKey: null,
+              sessionToken: null,
             },
             model: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
           },

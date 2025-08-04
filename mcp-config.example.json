@@ -16,7 +16,7 @@
         "--debug"
       ],
       "env": {
-        "PATH": "~/.local/share/nvm/v22.16.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        "PATH": "~/.local/share/nvm/v22.17.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       }
     }
   }
