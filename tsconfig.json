@@ -22,6 +22,7 @@
       "@/config/*": ["src/config/*"],
       "@/prompts/*": ["src/prompts/*"],
       "@/tools/*": ["src/tools/*"],
+      "@/libraries/*": ["src/libraries/*"],
       "@/utils/*": ["src/utils/*"]
     },
     "resolveJsonModule": true,

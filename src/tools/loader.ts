@@ -26,6 +26,9 @@ export class ToolLoader {
     try {
       loggingContext.log('info', 'Loading tools...');
 
+      // Register AWS S3 tool
+      this.registerTool(awsS3Tool);
+
       // Register system time tool
       this.registerTool(systemTimeTool);
 
@@ -37,9 +40,6 @@ export class ToolLoader {
 
       // Register project tool
       this.registerTool(projectTool);
-
-      // Register AWS S3 tool
-      this.registerTool(awsS3Tool);
 
       this.loaded = true;
       loggingContext.log('info', 'Successfully loaded tools');

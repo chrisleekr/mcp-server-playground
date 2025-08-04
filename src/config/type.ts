@@ -64,6 +64,7 @@ export const ToolsConfigSchema = z.object({
     credentials: z.object({
       accessKeyId: z.string().nullable(),
       secretAccessKey: z.string().nullable(),
+      sessionToken: z.string().nullable(),
     }),
     bedrock: z.object({
       region: z.string(),
@@ -71,6 +72,7 @@ export const ToolsConfigSchema = z.object({
       credentials: z.object({
         accessKeyId: z.string().nullable(),
         secretAccessKey: z.string().nullable(),
+        sessionToken: z.string().nullable(),
       }),
       model: z.string(),
     }),
