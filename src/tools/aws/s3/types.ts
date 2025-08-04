@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { ToolResultSchema } from '@/tools/types';
 
 export interface BucketWithObjects extends Bucket {
-  objects?: ListObjectsV2Output['Contents'] | [];
+  objects?: ListObjectsV2Output['Contents'];
 }
 
 export const AWSS3InputSchema = z.object({
@@ -45,10 +45,12 @@ export const AWSS3OutputSchema = ToolResultSchema.extend({
               lastModified: z.string().or(z.date()),
               size: z.number(),
               storageClass: z.string(),
-              owner: z.object({
-                displayName: z.string(),
-                id: z.string(),
-              }),
+              owner: z
+                .object({
+                  displayName: z.string(),
+                  id: z.string(),
+                })
+                .optional(),
             })
           ),
         })
@@ -77,12 +79,14 @@ export const AWSS3OutputSchema = ToolResultSchema.extend({
                   storageClass: z
                     .string()
                     .describe('The storage class of the S3 object'),
-                  owner: z.object({
-                    displayName: z
-                      .string()
-                      .describe('The display name of the owner'),
-                    id: z.string().describe('The ID of the owner'),
-                  }),
+                  owner: z
+                    .object({
+                      displayName: z
+                        .string()
+                        .describe('The display name of the owner'),
+                      id: z.string().describe('The ID of the owner'),
+                    })
+                    .optional(),
                 })
               ),
             })

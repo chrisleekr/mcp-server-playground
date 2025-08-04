@@ -75,6 +75,7 @@ async function* executeAWSS3(
             data: { bucket },
           });
 
+          // This is slow if there are many buckets. Use Promise.all to speed it up.
           buckets[index] = {
             ...bucket,
             objects:
