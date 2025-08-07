@@ -9,7 +9,7 @@ export const AWSECSInputSchema = z.object({
   ecsTaskArn: z
     .string()
     .describe(
-      'The ARN of the ECS task i.e. arn:aws:ecs:ap-southeast-2:<account-id>:task/ecs-cluster-72168a8/<task-id>'
+      'The ARN of the ECS task i.e. arn:aws:ecs:ap-southeast-2:<account-id>:task/ecs-cluster-123456/<task-id>'
     ),
 });
 
