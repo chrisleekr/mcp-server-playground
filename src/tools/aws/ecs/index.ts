@@ -423,7 +423,6 @@ export const awsEcsTool: Tool<AWSECSInput, AWSECSOutput> = new ToolBuilder<
         ecsCluster: 'ecs-cluster-123456',
         ecsTaskArn:
           'arn:aws:ecs:ap-southeast-2:123456789:task/ecs-cluster-123456/123456789123456789123456789',
-        ecsTaskDefinition: 'svc-test:123',
       },
       output: {
         success: true,
