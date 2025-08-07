@@ -85,6 +85,7 @@ export type ToolsConfig = z.infer<typeof ToolsConfigSchema>;
  * Complete application configuration combining all config sources
  */
 export interface AppConfig {
+  timeZone: string;
   server: ServerConfig;
   storage: StorageConfig;
   tools: ToolsConfig;

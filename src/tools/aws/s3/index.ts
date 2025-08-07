@@ -17,6 +17,8 @@ import {
   AWSS3Input,
   AWSS3InputSchema,
   AWSS3Output,
+  AWSS3OutputContent,
+  AWSS3OutputContentSchema,
   AWSS3OutputSchema,
   BucketWithObjects,
 } from './types';
@@ -103,7 +105,7 @@ async function* executeAWSS3(
       });
     }
 
-    const output: AWSS3Output['structuredContent']['content'] = {
+    const output: AWSS3OutputContent = {
       buckets: buckets.map(bucket => ({
         name: bucket.Name ?? '',
         creationDate: bucket.CreationDate?.toISOString() ?? '',
@@ -127,7 +129,7 @@ async function* executeAWSS3(
     // Create structured content for the new MCP spec
     const structuredOutput = createStructuredContent(
       output,
-      zodToJsonSchema(AWSS3OutputSchema.shape.structuredContent.shape.content),
+      zodToJsonSchema(AWSS3OutputContentSchema),
       'json'
     );
 
@@ -190,6 +192,7 @@ export const awsS3Tool: Tool<AWSS3Input, AWSS3Output> = new ToolBuilder<
   .outputSchema(zodToJsonSchema(AWSS3OutputSchema))
   .examples([
     {
+      description: 'Get the list of S3 buckets and objects',
       input: { operation: 'listBuckets', bucketPrefix: 'my-bucket' },
       output: {
         success: true,
@@ -221,7 +224,6 @@ export const awsS3Tool: Tool<AWSS3Input, AWSS3Output> = new ToolBuilder<
           format: 'json',
         },
       },
-      description: 'Get the list of S3 buckets and objects',
     },
   ])
   .tags(['aws', 's3', 'storage'])

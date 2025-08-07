@@ -13,6 +13,7 @@ export class ConfigManager {
 
   private constructor() {
     this.config = {
+      timeZone: 'Australia/Melbourne',
       server: {
         environment: 'dev',
         name: 'mcp-server-boilerplate',
