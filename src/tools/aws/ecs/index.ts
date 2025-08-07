@@ -431,6 +431,6 @@ export const awsEcsTool: Tool<AWSECSInput, AWSECSOutput> = new ToolBuilder<
   ])
   .tags(['aws', 'ecs', 'task', 'service', 'cloudwatch'])
   .version(packageJson.version)
-  .timeout(2000)
+  .timeout(30000)
   .streamingImplementation(executeAWSECS)
   .build();
