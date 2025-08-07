@@ -2,6 +2,7 @@ import { loggingContext } from '@/core/server';
 import { toolRegistry } from '@/tools/registry';
 import { Tool, ToolDefinition } from '@/tools/types';
 
+import { awsEcsTool } from './aws/ecs';
 import { awsS3Tool } from './aws/s3';
 import { echoTool } from './echo';
 import { projectTool } from './project';
@@ -25,6 +26,9 @@ export class ToolLoader {
 
     try {
       loggingContext.log('info', 'Loading tools...');
+
+      // Register AWS ECS tool
+      this.registerTool(awsEcsTool);
 
       // Register AWS S3 tool
       this.registerTool(awsS3Tool);

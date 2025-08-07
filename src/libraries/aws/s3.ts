@@ -44,9 +44,7 @@ export function getS3ClientForRegion(region: string): S3Client {
         },
       },
     });
-    throw new Error(
-      `Failed to create S3 client for region ${region}: ${error instanceof Error ? error.message : String(error)}`
-    );
+    throw error;
   }
 }
 

@@ -8,7 +8,13 @@ A playground for Model Context Protocol (MCP) server built with TypeScript and S
 - OAuth authentication/3rd party authorization: Implements an OAuth server for MCP clients to process 3rd party authorization servers like Auth0, providing Dynamic Application Registration for MCP server.
 - Storage: Provide storage for MCP server to store data like OAuth sessions, tokens, etc.
 - Session Management: Support stateful sessions by using replay of initial request.
-- Tools: `aws-s3`, `echo`, `system-time`, `streaming`, `project` for demonstration.
+- Tools:
+  - `aws-ecs`: Investigate the ECS service, task and cloudwatch logs using AWS ECS, Cloudwatch Logs and Bedrock
+  - `aws-s3`: Get the list of S3 buckets and objects
+  - `system-time`: Get the current system time in various formats with timezone support
+  - `echo`: Echo a message back with transformations, repetition
+  - `streaming`: Simulate real-time streaming data with live updates
+  - `project`: Find keywords in the current project directory
 - Prompts: `echo`
 
 ## Why this project exists?
