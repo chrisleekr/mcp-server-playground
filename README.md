@@ -10,11 +10,11 @@ A playground for Model Context Protocol (MCP) server built with TypeScript and S
 - Session Management: Support stateful sessions by using replay of initial request.
 - Tools:
   - `aws-ecs`: Investigate the ECS service, task and cloudwatch logs using AWS ECS, Cloudwatch Logs and Bedrock
-  - `aws-s3`: Investigate the S3 bucket and objects using AWS S3
-  - `echo`: Echo the input
-  - `system-time`: Get the system time
-  - `streaming`: Streaming response
-  - `project`: Project management
+  - `aws-s3`: Get the list of S3 buckets and objects
+  - `system-time`: Get the current system time in various formats with timezone support
+  - `echo`: Echo a message back with transformations, repetition
+  - `streaming`: Simulate real-time streaming data with live updates
+  - `project`: Find keywords in the current project directory
 - Prompts: `echo`
 
 ## Why this project exists?
