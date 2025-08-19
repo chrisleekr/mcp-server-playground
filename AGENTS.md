@@ -168,12 +168,47 @@ All checks MUST pass before merging. Use `npm run lint:fix` and `npm run format`
 
 ## Development Setup
 
+The following steps will get your local development environment up and running.
+
+### 1. Install Dependencies
+
 ```bash
-npm install                    # Install dependencies
-cp .env.example .env          # Setup environment variables
-npm run dev:setup             # Initialize development environment
-npm run dev                   # Start development server
+npm install
 ```
+
+### 2. Configure Environment
+
+Create a `.env` file by copying the example:
+
+```bash
+cp .env.example .env
+```
+
+This file holds configuration for the server, authentication, and tools. Key variables include:
+
+- `MCP_CONFIG_SERVER_HTTP_PORT`: The port for the MCP server (default: `3000`).
+- `MCP_CONFIG_STORAGE_TYPE`: The storage backend. Can be `valkey` (default, requires Docker) or `memory`.
+- `MCP_CONFIG_SERVER_AUTH_ENABLED`: Set to `true` to enable Auth0 authentication, or `false` to disable it for local development.
+- `AUTH0_*_...`: If auth is enabled, these variables must be configured with your Auth0 application details.
+- `MCP_CONFIG_TOOLS_AWS_*`: (Optional) AWS credentials for tools that interact with AWS services.
+
+### 3. Initialize Development Environment
+
+Run the one-time setup script:
+
+```bash
+npm run dev:setup
+```
+
+This command uses `docker-compose` to start the Valkey (Redis-compatible) database required for session and data storage.
+
+### 4. Run the Development Server
+
+```bash
+npm run dev
+```
+
+This will start the server with auto-reloading on file changes. The server will be accessible at `http://localhost:3000`.
 
 **MCP Inspector Testing**:
 
