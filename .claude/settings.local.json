@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm lint:*)",
+      "Bash(npm format:*)",
+      "Bash(npm test:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "mcp__github__get_file_contents",
+      "mcp__github__get_issue",
+      "Bash(grep:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(node:*)"
+    ],
+    "deny": []
+  }
+}
