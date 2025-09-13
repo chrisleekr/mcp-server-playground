@@ -68,7 +68,7 @@
     "helmet": "8.1.0",
     "iovalkey": "0.3.3",
     "jsonwebtoken": "9.0.2",
-    "pino": "9.7.0",
+    "pino": "9.9.5",
     "pino-http": "10.5.0",
     "uuid": "11.1.0",
     "yaml": "2.8.1",
