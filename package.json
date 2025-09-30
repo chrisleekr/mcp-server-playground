@@ -70,7 +70,7 @@
     "jsonwebtoken": "9.0.2",
     "pino": "9.9.5",
     "pino-http": "10.5.0",
-    "uuid": "11.1.0",
+    "uuid": "13.0.0",
     "yaml": "2.8.1",
     "zod": "3.25.73",
     "zod-to-json-schema": "3.24.6"
