@@ -62,7 +62,7 @@
     "base64url": "3.0.1",
     "crypto-js": "4.2.0",
     "dayjs": "1.11.18",
-    "dotenv": "17.2.1",
+    "dotenv": "17.2.3",
     "express": "5.1.0",
     "express-rate-limit": "8.0.1",
     "helmet": "8.1.0",
