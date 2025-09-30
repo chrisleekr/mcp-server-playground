@@ -92,7 +92,7 @@
     "@typescript-eslint/parser": "8.43.0",
     "branch-name-lint": "3.0.1",
     "concurrently": "9.2.1",
-    "cross-env": "10.0.0",
+    "cross-env": "10.1.0",
     "eslint": "9.35.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-simple-import-sort": "12.1.1",
