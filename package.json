@@ -61,7 +61,7 @@
     "axios": "1.13.2",
     "base64url": "3.0.1",
     "crypto-js": "4.2.0",
-    "dayjs": "1.11.18",
+    "dayjs": "1.11.19",
     "dotenv": "17.2.1",
     "express": "5.1.0",
     "express-rate-limit": "8.0.1",
