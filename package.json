@@ -80,7 +80,7 @@
     "@commitlint/cli": "19.8.1",
     "@commitlint/config-conventional": "19.8.1",
     "@eslint/js": "9.39.1",
-    "@rspack/cli": "1.5.3",
+    "@rspack/cli": "1.6.3",
     "@rspack/core": "1.6.3",
     "@types/express": "5.0.5",
     "@types/jest": "30.0.0",
