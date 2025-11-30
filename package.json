@@ -89,7 +89,7 @@
     "@types/supertest": "6.0.3",
     "@types/uuid": "10.0.0",
     "@typescript-eslint/eslint-plugin": "8.47.0",
-    "@typescript-eslint/parser": "8.47.0",
+    "@typescript-eslint/parser": "8.48.0",
     "branch-name-lint": "3.0.1",
     "concurrently": "9.2.1",
     "cross-env": "10.0.0",
