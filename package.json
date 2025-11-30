@@ -73,7 +73,7 @@
     "uuid": "11.1.0",
     "yaml": "2.8.1",
     "zod": "3.25.73",
-    "zod-to-json-schema": "3.24.6"
+    "zod-to-json-schema": "3.25.0"
   },
   "devDependencies": {
     "@aws-sdk/types": "3.930.0",
