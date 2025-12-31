@@ -67,7 +67,7 @@
     "express-rate-limit": "8.2.1",
     "helmet": "8.1.0",
     "iovalkey": "0.3.3",
-    "jsonwebtoken": "9.0.2",
+    "jsonwebtoken": "9.0.3",
     "pino": "10.1.0",
     "pino-http": "11.0.0",
     "uuid": "11.1.0",
