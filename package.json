@@ -78,7 +78,7 @@
   "devDependencies": {
     "@aws-sdk/types": "3.930.0",
     "@commitlint/cli": "19.8.1",
-    "@commitlint/config-conventional": "19.8.1",
+    "@commitlint/config-conventional": "20.2.0",
     "@eslint/js": "9.39.1",
     "@rspack/cli": "1.6.3",
     "@rspack/core": "1.6.3",
