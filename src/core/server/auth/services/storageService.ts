@@ -293,6 +293,7 @@ export class StorageService {
 
     try {
       const token = await this.storage.get(`token:${accessToken}`);
+      // eslint-disable-next-line security/detect-possible-timing-attacks -- false positive: comparing against null, not secrets
       if (token === null) {
         return null;
       }
@@ -333,6 +334,7 @@ export class StorageService {
 
     try {
       const token = await this.storage.get(`token:${refreshToken}`);
+      // eslint-disable-next-line security/detect-possible-timing-attacks -- false positive: comparing against null, not secrets
       if (token === null) {
         return null;
       }
