@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { type Request } from 'express';
 import { isIP } from 'net';
 
 /**
@@ -21,22 +21,12 @@ const parseIPList = (ipString: string): string | null => {
 };
 
 /**
- * Process a header value (string or array) and return the first valid IP
+ * Process a header value and return the first valid IP
  */
-const processHeaderValue = (headerValue: string | string[]): string | null => {
-  if (typeof headerValue === 'string' && headerValue.length > 0) {
+const processHeaderValue = (headerValue: string): string | null => {
+  if (headerValue.length > 0) {
     return parseIPList(headerValue);
   }
-
-  if (Array.isArray(headerValue) && headerValue.length > 0) {
-    for (const value of headerValue) {
-      if (typeof value === 'string' && value.length > 0) {
-        const ip = parseIPList(value);
-        if (ip !== null) return ip;
-      }
-    }
-  }
-
   return null;
 };
 
@@ -56,7 +46,7 @@ export const getIPAddress = (req: Request): string => {
   ];
 
   for (const header of headerPriority) {
-    const headerValue = req.headers[header];
+    const headerValue = req.get(header);
     if (headerValue !== undefined && headerValue !== '') {
       const ip = processHeaderValue(headerValue);
       if (ip !== null) return ip;

@@ -9,6 +9,7 @@ export type StorageValkeyConfig = z.infer<typeof StorageValkeyConfigSchema>;
 export const StorageConfigSchema = z.object({
   type: z.enum(['memory', 'valkey']).default('memory'),
   valkey: StorageValkeyConfigSchema,
+  sessionTTL: z.number().int().min(60).default(3600),
 });
 
 export type StorageConfig = z.infer<typeof StorageConfigSchema>;
@@ -48,6 +49,7 @@ export const ServerConfigSchema = z.object({
   http: z.object({
     port: z.number().int().min(1).max(65535),
     host: z.string(),
+    corsOrigins: z.array(z.string()).default(['*']),
   }),
   auth: AuthConfigSchema,
 });

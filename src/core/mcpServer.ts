@@ -1,5 +1,6 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import express from 'express';
+import type express from 'express';
+import type http from 'http';
 
 import { config } from '@/config/manager';
 import { setupErrorHandling } from '@/core/server/errorHandling';
@@ -7,14 +8,15 @@ import { setupHttpServer } from '@/core/server/http';
 import { loggingContext } from '@/core/server/http/context';
 import { loadPrompts, setupPromptsHandlers } from '@/core/server/prompts';
 import { loadTools, setupToolHandlers } from '@/core/server/tools';
-import { PromptContext } from '@/prompts/types';
-import { ToolContext } from '@/tools/types';
+import { type PromptContext } from '@/prompts/types';
+import { type ToolContext } from '@/tools/types';
 
 export class MCPServer {
   private server: Server;
   private promptContext: PromptContext;
   private toolContext: ToolContext;
   private httpServer: express.Application | null = null;
+  private nodeServer: http.Server | null = null;
 
   constructor() {
     this.server = new Server(
@@ -31,12 +33,6 @@ export class MCPServer {
             level: 'debug',
           },
           tools: {},
-          notifications: {},
-          // Note: Saw somewhere, but it seems not working. Just leave it here for now.
-          experimental: {
-            streaming: true,
-            progressNotifications: true,
-          },
         },
       }
     );
@@ -66,15 +62,15 @@ export class MCPServer {
       const port = config.server.http.port;
       const host = config.server.http.host;
 
-      const app = this.httpServer.listen(port, host, () => {
+      this.nodeServer = this.httpServer.listen(port, host, () => {
         loggingContext.log('info', 'MCP Server started successfully', {
           data: { host, port },
         });
       });
 
       // Set keepAliveTimeout and headersTimeout for the http server
-      app.keepAliveTimeout = 60000;
-      app.headersTimeout = 65000;
+      this.nodeServer.keepAliveTimeout = 60000;
+      this.nodeServer.headersTimeout = 65000;
     } catch (error) {
       loggingContext.log('error', 'Failed to start MCP Server', {
         error: {
@@ -87,9 +83,13 @@ export class MCPServer {
   }
 
   public stop(): void {
-    if (this.httpServer) {
-      // Close HTTP server if it exists
-      loggingContext.log('info', 'Stopping MCP Server...');
+    loggingContext.log('info', 'Stopping MCP Server...');
+    if (this.nodeServer !== null) {
+      const server = this.nodeServer;
+      server.close(() => {
+        loggingContext.log('info', 'MCP Server stopped');
+        this.nodeServer = null;
+      });
     }
   }
 

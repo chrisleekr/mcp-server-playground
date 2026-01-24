@@ -1,15 +1,20 @@
-import { Application, NextFunction, Request, Response } from 'express';
+import {
+  type Application,
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 
 import { config } from '@/config/manager';
 import { loggingContext } from '@/core/server/http/context';
 
 import { OAuthService } from './services/oauthService';
 import {
-  OAuthServiceAuthorizationServer,
-  OAuthServiceHandleAuthorizationRequest,
-  OAuthServiceHandleTokenRequest,
-  OAuthServiceProtectedResource,
-  OAuthServiceRegisterClientRequest,
+  type OAuthServiceAuthorizationServer,
+  type OAuthServiceHandleAuthorizationRequest,
+  type OAuthServiceHandleTokenRequest,
+  type OAuthServiceProtectedResource,
+  type OAuthServiceRegisterClientRequest,
 } from './services/types';
 
 const oauthService = new OAuthService();
@@ -37,7 +42,7 @@ export function requireAuth(): (
     }
     const token = parseBearerToken(req);
 
-    if (token === '') {
+    if (token.length === 0) {
       loggingContext.log('warn', 'No token provided');
       res.status(401).json({ error: 'Unauthorized - No token provided' });
       return;
@@ -50,12 +55,12 @@ export function requireAuth(): (
         expectedAudience
       );
       if (!result.valid) {
-        loggingContext.log('warn', 'Invalid token', { token });
+        loggingContext.log('warn', 'Invalid token provided');
         res.status(401).json({ error: 'Unauthorized - Invalid token' });
         return;
       }
 
-      loggingContext.log('debug', 'Token validated', { token: result });
+      loggingContext.log('debug', 'Token validated successfully');
     } catch (error: unknown) {
       loggingContext.log('error', 'Failed to validate token', {
         error: error instanceof Error ? error.message : 'Unknown error',

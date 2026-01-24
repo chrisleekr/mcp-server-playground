@@ -1,27 +1,52 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { setTimeout } from 'timers/promises';
+import { type Storage } from './types';
 
-import { Storage } from './types';
+interface StoredValue {
+  value: string;
+  expiresAt?: number;
+}
+
+const CLEANUP_THRESHOLD = 100;
 
 export class MemoryStorage implements Storage {
-  private store: Map<string, string> = new Map();
+  private store: Map<string, StoredValue> = new Map();
+  private operationCount = 0;
+
+  private cleanupExpired(): void {
+    const now = Date.now();
+    for (const [key, stored] of this.store.entries()) {
+      if (stored.expiresAt !== undefined && now >= stored.expiresAt) {
+        this.store.delete(key);
+      }
+    }
+  }
 
   async get(key: string): Promise<string | null> {
-    return this.store.get(key) ?? null;
+    const stored = this.store.get(key);
+    if (stored === undefined) {
+      return null;
+    }
+
+    if (stored.expiresAt !== undefined && Date.now() >= stored.expiresAt) {
+      this.store.delete(key);
+      return null;
+    }
+
+    return stored.value;
   }
 
   async set(key: string, value: string, ttl?: number): Promise<void> {
-    if (ttl !== undefined) {
-      setTimeout(ttl * 1000)
-        .then(() => {
-          this.store.delete(key);
-        })
-        .catch(() => {
-          // ignore error
-        });
+    this.operationCount++;
+    if (this.operationCount >= CLEANUP_THRESHOLD) {
+      this.cleanupExpired();
+      this.operationCount = 0;
     }
 
-    this.store.set(key, value);
+    const stored: StoredValue =
+      ttl !== undefined
+        ? { value, expiresAt: Date.now() + ttl * 1000 }
+        : { value };
+    this.store.set(key, stored);
   }
 
   async delete(key: string): Promise<boolean> {
@@ -33,10 +58,26 @@ export class MemoryStorage implements Storage {
   }
 
   async keys(pattern: string): Promise<string[]> {
-    return Array.from(this.store.keys()).filter(key => key.startsWith(pattern));
+    const now = Date.now();
+    return Array.from(this.store.entries())
+      .filter(([, stored]) => {
+        if (stored.expiresAt !== undefined && now >= stored.expiresAt) {
+          return false;
+        }
+        return true;
+      })
+      .map(([key]) => key)
+      .filter(key => key.startsWith(pattern));
   }
 
   async length(): Promise<number> {
-    return this.store.size;
+    const now = Date.now();
+    let count = 0;
+    for (const stored of this.store.values()) {
+      if (stored.expiresAt === undefined || now < stored.expiresAt) {
+        count++;
+      }
+    }
+    return count;
   }
 }

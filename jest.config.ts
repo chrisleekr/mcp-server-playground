@@ -23,10 +23,7 @@ const config: Config.InitialOptions = {
     '^.+\\.ts$': [
       'ts-jest',
       {
-        tsconfig: {
-          module: 'CommonJS',
-          moduleResolution: 'node',
-        },
+        tsconfig: 'tsconfig.jest.json',
       },
     ],
   },
@@ -36,8 +33,8 @@ const config: Config.InitialOptions = {
   moduleDirectories: ['node_modules', '<rootDir>'],
 
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/coverage/'],
-  // Coverage settings
-  collectCoverage: true,
+  // Coverage settings - use --coverage flag to enable
+  collectCoverage: false,
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'clover', 'json'],
   coveragePathIgnorePatterns: [
@@ -49,10 +46,10 @@ const config: Config.InitialOptions = {
   ],
   coverageThreshold: {
     global: {
-      branches: 0,
-      functions: 0,
-      lines: 0,
-      statements: 0,
+      branches: 10,
+      functions: 10,
+      lines: 10,
+      statements: 10,
     },
   },
 

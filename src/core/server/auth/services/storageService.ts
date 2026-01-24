@@ -1,14 +1,14 @@
 import { config } from '@/config/manager';
 import { loggingContext } from '@/core/server/http/context';
 import { createStorage } from '@/core/storage/storageFactory';
-import { Storage } from '@/core/storage/types';
+import { type Storage } from '@/core/storage/types';
 
 import {
-  OAuthServiceAuth0Session,
-  OAuthServiceAuthorizationSession,
-  OAuthServiceClient,
-  OAuthServiceStats,
-  OAuthServiceTokenRecord,
+  type OAuthServiceAuth0Session,
+  type OAuthServiceAuthorizationSession,
+  type OAuthServiceClient,
+  type OAuthServiceStats,
+  type OAuthServiceTokenRecord,
 } from './types';
 
 export class StorageService {
@@ -293,6 +293,7 @@ export class StorageService {
 
     try {
       const token = await this.storage.get(`token:${accessToken}`);
+      // eslint-disable-next-line security/detect-possible-timing-attacks -- false positive: comparing against null, not secrets
       if (token === null) {
         return null;
       }
@@ -333,6 +334,7 @@ export class StorageService {
 
     try {
       const token = await this.storage.get(`token:${refreshToken}`);
+      // eslint-disable-next-line security/detect-possible-timing-attacks -- false positive: comparing against null, not secrets
       if (token === null) {
         return null;
       }

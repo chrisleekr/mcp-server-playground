@@ -1,6 +1,6 @@
 import { loggingContext } from '@/core/server';
 import { toolRegistry } from '@/tools/registry';
-import { Tool, ToolDefinition } from '@/tools/types';
+import { type Tool, type ToolDefinition } from '@/tools/types';
 
 import { awsEcsTool } from './aws/ecs';
 import { awsS3Tool } from './aws/s3';

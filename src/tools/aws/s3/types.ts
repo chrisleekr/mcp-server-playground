@@ -1,4 +1,4 @@
-import { Bucket, ListObjectsV2Output } from '@aws-sdk/client-s3';
+import { type Bucket, type ListObjectsV2Output } from '@aws-sdk/client-s3';
 import { z } from 'zod';
 
 import { ToolResultSchema } from '@/tools/types';

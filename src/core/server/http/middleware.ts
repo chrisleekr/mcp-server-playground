@@ -1,19 +1,58 @@
 import bodyParser from 'body-parser';
-import { Application, NextFunction, Request, Response } from 'express';
+import {
+  type Application,
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import { v4 as uuidv4 } from 'uuid';
 
+import { config } from '@/config/manager';
 import { getIPAddress } from '@/utils/ip';
 import { logger } from '@/utils/logger';
 
-import { AsyncLocalStorageLoggingContext, loggingContext } from './context';
+import {
+  type AsyncLocalStorageLoggingContext,
+  loggingContext,
+} from './context';
 
 // MCP Protocol Version constants
 const CURRENT_MCP_VERSION = '2025-06-18';
 const FALLBACK_MCP_VERSION = '2025-03-26';
 const SUPPORTED_MCP_VERSIONS = [CURRENT_MCP_VERSION, FALLBACK_MCP_VERSION];
+
+function setupCorsMiddleware(app: Application): void {
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    const allowedOrigins = config.server.http.corsOrigins;
+
+    if (allowedOrigins.includes('*')) {
+      res.header('Access-Control-Allow-Origin', '*');
+    } else if (origin !== undefined && allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Vary', 'Origin');
+    } else if (origin !== undefined) {
+      loggingContext.log('debug', 'CORS origin not in allowed list', {
+        data: { origin, allowedOrigins },
+      });
+    }
+
+    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Mcp-Session-Id, Mcp-Protocol-Version, Last-Event-ID, Authorization'
+    );
+
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+    next();
+  });
+}
 
 export function setupMiddleware(app: Application): void {
   app.use(helmet());
@@ -34,8 +73,8 @@ export function setupMiddleware(app: Application): void {
     })
   );
 
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json({ limit: '1mb' }));
+  app.use(bodyParser.urlencoded({ extended: true, limit: '1mb' }));
 
   app.use(
     pinoHttp({
@@ -136,18 +175,5 @@ export function setupMiddleware(app: Application): void {
   });
 
   // CORS headers for web clients
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.header(
-      'Access-Control-Allow-Headers',
-      'Content-Type, Mcp-Session-Id, Mcp-Protocol-Version, Last-Event-ID, Authorization'
-    );
-
-    if (req.method === 'OPTIONS') {
-      res.sendStatus(200);
-      return;
-    }
-    next();
-  });
+  setupCorsMiddleware(app);
 }

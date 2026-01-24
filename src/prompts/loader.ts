@@ -1,6 +1,6 @@
 import { loggingContext } from '@/core/server';
 import { promptRegistry } from '@/prompts/registry';
-import { Prompt, PromptDefinition } from '@/prompts/types';
+import { type Prompt, type PromptDefinition } from '@/prompts/types';
 
 import { echoPrompt } from './echo';
 

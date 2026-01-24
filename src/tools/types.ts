@@ -1,8 +1,8 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { type Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { ToolSchema } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 
-import { ProgressToken } from '@/core/server';
+import { type ProgressToken } from '@/core/server';
 
 /**
  * Tool execution context for dependency injection and configuration

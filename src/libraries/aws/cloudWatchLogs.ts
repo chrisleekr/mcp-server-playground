@@ -1,9 +1,9 @@
 import {
   CloudWatchLogsClient,
   GetQueryResultsCommand,
-  GetQueryResultsCommandOutput,
+  type GetQueryResultsCommandOutput,
   StartQueryCommand,
-  StartQueryCommandOutput,
+  type StartQueryCommandOutput,
 } from '@aws-sdk/client-cloudwatch-logs';
 
 import { config } from '@/config/manager';

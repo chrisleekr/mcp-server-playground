@@ -3,7 +3,7 @@
 import {
   BedrockRuntimeClient,
   InvokeModelCommand,
-  InvokeModelCommandOutput,
+  type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
 
 import { config } from '@/config/manager';

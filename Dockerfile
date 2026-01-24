@@ -23,6 +23,10 @@ RUN npm run build
 FROM base AS deps
 
 WORKDIR /app
+
+# Disable husky in production deps
+ENV HUSKY=0
+
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
@@ -48,10 +52,14 @@ WORKDIR /app
 
 COPY --from=development --chown=node:node /app/dist ./dist
 COPY --from=development --chown=node:node /app/package*.json ./
+COPY --from=deps --chown=node:node /app/node_modules ./node_modules
 
 USER node
 
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
 ENTRYPOINT ["dumb-init", "--"]
 

@@ -1,8 +1,8 @@
 import {
   ListBucketsCommand,
-  ListBucketsCommandOutput,
+  type ListBucketsCommandOutput,
   ListObjectsV2Command,
-  ListObjectsV2CommandOutput,
+  type ListObjectsV2CommandOutput,
   S3Client,
 } from '@aws-sdk/client-s3';
 

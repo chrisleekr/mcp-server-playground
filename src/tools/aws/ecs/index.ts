@@ -1,7 +1,7 @@
 /* eslint-disable max-statements */
 /* eslint-disable max-lines-per-function */
 /* eslint-disable complexity */
-import { Task } from '@aws-sdk/client-ecs';
+import { type Task } from '@aws-sdk/client-ecs';
 import yaml from 'yaml';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
@@ -18,20 +18,20 @@ import {
 } from '@/libraries/aws';
 import {
   createStructuredContent,
-  Tool,
+  type Tool,
   ToolBuilder,
-  ToolContext,
-  ToolInputSchema,
-  ToolResult,
+  type ToolContext,
+  type ToolInputSchema,
+  type ToolResult,
 } from '@/tools/types';
 import { formatDate } from '@/utils/date';
 
 import packageJson from '../../../../package.json';
 import {
-  AWSECSInput,
+  type AWSECSInput,
   AWSECSInputSchema,
-  AWSECSOutput,
-  AWSECSOutputContent,
+  type AWSECSOutput,
+  type AWSECSOutputContent,
   AWSECSOutputContentSchema,
   AWSECSOutputSchema,
 } from './types';
@@ -195,8 +195,10 @@ async function* executeAWSECS(
 
     // Poll for query results until it's done
     while (startQueryResponse.queryId !== undefined) {
+      // eslint-disable-next-line no-await-in-loop -- intentional sequential polling
       await new Promise(resolve => global.setTimeout(resolve, 1000));
 
+      // eslint-disable-next-line no-await-in-loop -- intentional sequential polling
       const getQueryResultsResponse = await getQueryResults({
         queryId: startQueryResponse.queryId,
       });

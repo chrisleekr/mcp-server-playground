@@ -6,12 +6,16 @@ import { config } from '@/config/manager';
 import { loggingContext, sendProgressNotification } from '@/core/server';
 import {
   ToolBuilder,
-  ToolContext,
-  ToolInputSchema,
-  ToolResult,
+  type ToolContext,
+  type ToolInputSchema,
+  type ToolResult,
 } from '@/tools/types';
 
-import { ProjectInput, ProjectInputSchema, ProjectOutput } from './types';
+import {
+  type ProjectInput,
+  ProjectInputSchema,
+  type ProjectOutput,
+} from './types';
 
 async function* executeProject(
   input: ProjectInput,
@@ -56,6 +60,7 @@ async function* executeProject(
     loggingContext.log('debug', 'Searching directory', {
       data: { path: dirPath },
     });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- dirPath is validated input
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
     loggingContext.log('debug', 'Entries', { data: { entries } });
 
@@ -77,9 +82,11 @@ async function* executeProject(
         loggingContext.log('debug', 'Searching subdirectory', {
           data: { path: fullPath },
         });
+        // eslint-disable-next-line no-await-in-loop -- recursive directory traversal must be sequential
         await searchDirectory(fullPath, keywords);
       } else if (entry.isFile()) {
         try {
+          // eslint-disable-next-line no-await-in-loop, security/detect-non-literal-fs-filename -- sequential file reading with validated path
           const content = await fs.readFile(fullPath, 'utf-8');
           // Check if any keyword is present in the file content
           if (

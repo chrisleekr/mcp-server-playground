@@ -1,4 +1,4 @@
-import { Tool, ToolDefinition } from '@/tools/types';
+import { type Tool, type ToolDefinition } from '@/tools/types';
 
 /**
  * Tool registry implementation

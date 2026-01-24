@@ -4,9 +4,9 @@ import { config } from '@/config/manager';
 import { loggingContext } from '@/core/server/http/context';
 
 import {
-  JWTClaims,
-  JWTServiceAccessTokenArgs,
-  JWTServiceRefreshTokenArgs,
+  type JWTClaims,
+  type JWTServiceAccessTokenArgs,
+  type JWTServiceRefreshTokenArgs,
 } from './types';
 
 export class JWTService {

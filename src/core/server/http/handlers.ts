@@ -1,6 +1,6 @@
-import express from 'express';
+import type express from 'express';
 
-import { TransportManager } from '../transport';
+import { type TransportManager } from '../transport';
 import { loggingContext } from './context';
 import { setupMCPDeleteHandler } from './handlers/mcpDelete';
 import { setupMCPPostHandler } from './handlers/mcpPost';
