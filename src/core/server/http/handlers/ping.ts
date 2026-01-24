@@ -17,12 +17,13 @@ export function setupPingHandler(app: express.Application): void {
   });
 
   app.get('/health', (_req, res) => {
+    const includeDetails = config.server.environment !== 'production';
     const response: HealthResponse = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       uptime: Math.floor(process.uptime()),
-      version: config.server.version,
-      environment: config.server.environment,
+      version: includeDetails ? config.server.version : 'redacted',
+      environment: includeDetails ? config.server.environment : 'redacted',
     };
 
     res.status(200).json(response);
