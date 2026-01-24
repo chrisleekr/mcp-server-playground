@@ -1,15 +1,12 @@
 {
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
-
     /* Projects */
     "incremental": true,
-
     /* Language and Environment */
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "ES2023"],
     "moduleDetection": "auto",
-
     /* Modules */
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -26,11 +23,11 @@
       "@/utils/*": ["src/utils/*"]
     },
     "resolveJsonModule": true,
-
+    "resolvePackageJsonExports": true,
+    "resolvePackageJsonImports": true,
     /* JavaScript Support */
     "allowJs": false,
     "checkJs": false,
-
     /* Emit */
     "declaration": true,
     "declarationMap": true,
@@ -41,13 +38,11 @@
     "importHelpers": true,
     "downlevelIteration": true,
     "noEmitOnError": true,
-
     /* Interop Constraints */
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-
     /* Type Checking - Maximum Strictness */
     "strict": true,
     "noImplicitAny": true,
@@ -66,10 +61,8 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-
     /* Completeness */
     "skipLibCheck": true,
-
     "types": ["node", "@rspack/core/module", "jest"]
   },
   "include": ["src/**/*", "test/**/*"],

@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 import prettierConfig from 'eslint-config-prettier';
+import security from 'eslint-plugin-security';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 
 export default [
@@ -43,10 +44,12 @@ export default [
     plugins: {
       '@typescript-eslint': tseslint,
       'simple-import-sort': simpleImportSort,
+      security: security,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
       ...tseslint.configs['recommended-requiring-type-checking'].rules,
+      ...security.configs.recommended.rules,
 
       // https://eslint.org/docs/latest/rules/sort-imports
       // Autofix is not working well with this rule.
@@ -119,6 +122,17 @@ export default [
       'no-eval': 'error',
       'no-implied-eval': 'error',
       'prefer-promise-reject-errors': 'error',
+
+      // Performance rules
+      'no-await-in-loop': 'warn',
+      'require-atomic-updates': 'error',
+
+      // Type safety
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      ],
+      '@typescript-eslint/switch-exhaustiveness-check': 'error',
     },
   },
   {
