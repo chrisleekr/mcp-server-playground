@@ -85,10 +85,11 @@ export class MCPServer {
   public stop(): void {
     loggingContext.log('info', 'Stopping MCP Server...');
     if (this.nodeServer !== null) {
-      this.nodeServer.close(() => {
+      const server = this.nodeServer;
+      server.close(() => {
         loggingContext.log('info', 'MCP Server stopped');
+        this.nodeServer = null;
       });
-      this.nodeServer = null;
     }
   }
 
