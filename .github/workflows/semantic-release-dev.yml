@@ -48,11 +48,23 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
-          cache: "npm"
+          node-version: '22'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run format
+        run: npm run format
+
+      - name: Run test
+        run: npm run test
 
       - name: Build project
         run: npm run build
@@ -104,6 +116,6 @@ jobs:
     if: needs.release.outputs.new-release-published == 'true'
     uses: ./.github/workflows/docker-build.yml
     with:
-      tag-name: "v${{ needs.release.outputs.new-release-version }}"
+      tag-name: 'v${{ needs.release.outputs.new-release-version }}'
       is-dev-release: true
     secrets: inherit

@@ -1,29 +1,29 @@
 version: 1
 appendOnly: true
 labels:
-  - label: "type: feature ✨"
+  - label: 'type: feature ✨'
     title: '^feat(\(.+\))?:.*'
-  - label: "type: fix 🐞"
+  - label: 'type: fix 🐞'
     title: '^fix(\(.+\))?:.*'
-  - label: "type: docs 📋"
+  - label: 'type: docs 📋'
     title: '^docs(\(.+\))?:.*'
-  - label: "type: style 🎨"
+  - label: 'type: style 🎨'
     title: '^style(\(.+\))?:.*'
-  - label: "type: refactor 🔧"
+  - label: 'type: refactor 🔧'
     title: '^refactor(\(.+\))?:.*'
-  - label: "type: test 🧪"
+  - label: 'type: test 🧪'
     title: '^test(\(.+\))?:.*'
-  - label: "type: chore 🧹"
+  - label: 'type: chore 🧹'
     title: '^chore(\(.+\))?:.*'
-  - label: "type: perf ⚡"
+  - label: 'type: perf ⚡'
     title: '^perf(\(.+\))?:.*'
-  - label: "type: build 🔨"
+  - label: 'type: build 🔨'
     title: '^build(\(.+\))?:.*'
-  - label: "type: ci ⚙️"
+  - label: 'type: ci ⚙️'
     title: '^ci(\(.+\))?:.*'
-  - label: "type: revert ↩️"
+  - label: 'type: revert ↩️'
     title: '^revert(\(.+\))?:.*'
-  - label: "type: localize 🌐"
+  - label: 'type: localize 🌐'
     title: '^localize(\(.+\))?:.*'
-  - label: "type: bump 📦"
+  - label: 'type: bump 📦'
     title: '^bump(\(.+\))?:.*'

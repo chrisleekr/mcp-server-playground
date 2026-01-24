@@ -135,9 +135,9 @@ publish-dev-docker:
       alias: docker
   variables:
     DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_CERTDIR: '/certs'
     DOCKER_TLS_VERIFY: 1
-    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+    DOCKER_CERT_PATH: '$DOCKER_TLS_CERTDIR/client'
   # Set reference for this block
   before_script: &before_script_docker
     - apk add curl git jq
@@ -177,9 +177,9 @@ publish-tag-docker:
       alias: docker
   variables:
     DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_CERTDIR: '/certs'
     DOCKER_TLS_VERIFY: 1
-    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+    DOCKER_CERT_PATH: '$DOCKER_TLS_CERTDIR/client'
   before_script: *before_script_docker
   script:
     - apk add --no-cache git
