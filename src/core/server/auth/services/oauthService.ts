@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import { Application } from 'express';
+import { type Application } from 'express';
 
 import { config } from '@/config/manager';
 import { loggingContext } from '@/core/server/http/context';
@@ -8,21 +8,21 @@ import { JWTService } from './jwtService';
 import { Auth0Provider } from './providers/auth0';
 import { StorageService } from './storageService';
 import {
-  OAuthServiceAuth0Session,
-  OAuthServiceAuthorizationServer,
-  OAuthServiceAuthorizationSession,
-  OAuthServiceClient,
-  OAuthServiceHandleAuthorizationRequest,
+  type OAuthServiceAuth0Session,
+  type OAuthServiceAuthorizationServer,
+  type OAuthServiceAuthorizationSession,
+  type OAuthServiceClient,
+  type OAuthServiceHandleAuthorizationRequest,
   OAuthServiceHandleAuthorizationRequestSchema,
-  OAuthServiceHandleAuthorizationResponse,
-  OAuthServiceHandleTokenRequest,
-  OAuthServiceHandleTokenResponse,
-  OAuthServiceProtectedResource,
-  OAuthServiceRegisterClientRequest,
-  OAuthServiceRegisterClientResponse,
-  OAuthServiceStats,
-  OAuthServiceTokenRecord,
-  OAuthServiceValidateAccessToken,
+  type OAuthServiceHandleAuthorizationResponse,
+  type OAuthServiceHandleTokenRequest,
+  type OAuthServiceHandleTokenResponse,
+  type OAuthServiceProtectedResource,
+  type OAuthServiceRegisterClientRequest,
+  type OAuthServiceRegisterClientResponse,
+  type OAuthServiceStats,
+  type OAuthServiceTokenRecord,
+  type OAuthServiceValidateAccessToken,
 } from './types';
 
 export class OAuthService {

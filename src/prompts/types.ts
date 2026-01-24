@@ -1,7 +1,7 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { GetPromptResult } from '@modelcontextprotocol/sdk/types.js';
+import { type Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { type GetPromptResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { ProgressToken } from '@/core/server';
+import { type ProgressToken } from '@/core/server';
 
 export interface PromptContext {
   server?: Server;

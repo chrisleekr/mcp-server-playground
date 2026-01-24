@@ -5,22 +5,22 @@ import { loggingContext, sendProgressNotification } from '@/core/server';
 import { listBuckets, listObjectsV2 } from '@/libraries/aws';
 import {
   createStructuredContent,
-  Tool,
+  type Tool,
   ToolBuilder,
-  ToolContext,
-  ToolInputSchema,
-  ToolResult,
+  type ToolContext,
+  type ToolInputSchema,
+  type ToolResult,
 } from '@/tools/types';
 
 import packageJson from '../../../../package.json';
 import {
-  AWSS3Input,
+  type AWSS3Input,
   AWSS3InputSchema,
-  AWSS3Output,
-  AWSS3OutputContent,
+  type AWSS3Output,
+  type AWSS3OutputContent,
   AWSS3OutputContentSchema,
   AWSS3OutputSchema,
-  BucketWithObjects,
+  type BucketWithObjects,
 } from './types';
 
 async function* executeAWSS3(
@@ -63,7 +63,7 @@ async function* executeAWSS3(
           ).Buckets ?? [];
 
         break;
-      case 'listObjects':
+      case 'listObjects': {
         buckets =
           (
             await listBuckets({
@@ -71,27 +71,35 @@ async function* executeAWSS3(
             })
           ).Buckets ?? [];
 
-        // Loop buckets and get objects
-        for (const [index, bucket] of buckets.entries()) {
-          loggingContext.log('info', 'Listing objects', {
-            data: { bucket },
-          });
+        // Fetch objects for all buckets with limited concurrency to avoid rate limiting
+        const CONCURRENCY_LIMIT = 5;
+        const results: BucketWithObjects[] = [];
 
-          // This is slow if there are many buckets. Use Promise.all to speed it up.
-          buckets[index] = {
-            ...bucket,
-            objects:
-              (
-                await listObjectsV2({
-                  bucket: bucket.Name ?? '',
-                  region: bucket.BucketRegion ?? '',
-                  prefix: validatedInput.keyPrefix,
-                })
-              ).Contents ?? [],
-          };
+        for (let i = 0; i < buckets.length; i += CONCURRENCY_LIMIT) {
+          const batch = buckets.slice(i, i + CONCURRENCY_LIMIT);
+          // eslint-disable-next-line no-await-in-loop -- intentional batched sequential processing
+          const batchResults = await Promise.all(
+            batch.map(async bucket => {
+              loggingContext.log('info', 'Listing objects', {
+                data: { bucket },
+              });
+              const objects =
+                (
+                  await listObjectsV2({
+                    bucket: bucket.Name ?? '',
+                    region: bucket.BucketRegion ?? '',
+                    prefix: validatedInput.keyPrefix,
+                  })
+                ).Contents ?? [];
+              return { ...bucket, objects };
+            })
+          );
+          results.push(...batchResults);
         }
+        buckets = results;
 
         break;
+      }
     }
 
     loggingContext.log('info', 'Buckets', { data: { buckets } });

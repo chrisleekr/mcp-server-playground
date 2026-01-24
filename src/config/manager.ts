@@ -1,4 +1,5 @@
-import { AppConfig } from '@/config/type';
+/* eslint-disable security/detect-object-injection -- Config manager requires dynamic property access for env var mapping */
+import { type AppConfig } from '@/config/type';
 // Must import loggingContext from here to avoid circular dependency
 import { loggingContext } from '@/core/server/http/context';
 
@@ -22,6 +23,7 @@ export class ConfigManager {
         http: {
           port: 3000,
           host: 'localhost',
+          corsOrigins: ['*'],
         },
         auth: {
           enabled: false,
@@ -46,6 +48,7 @@ export class ConfigManager {
         valkey: {
           url: 'redis://localhost:6379',
         },
+        sessionTTL: 3600,
       },
       tools: {
         project: {

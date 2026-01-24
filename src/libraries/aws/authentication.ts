@@ -1,7 +1,7 @@
 import { fromSSO } from '@aws-sdk/credential-providers';
 import {
-  AwsCredentialIdentity,
-  AwsCredentialIdentityProvider,
+  type AwsCredentialIdentity,
+  type AwsCredentialIdentityProvider,
 } from '@aws-sdk/types';
 
 import { config } from '@/config/manager';

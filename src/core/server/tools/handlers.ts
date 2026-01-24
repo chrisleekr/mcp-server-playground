@@ -1,12 +1,12 @@
 import {
-  CallToolRequest,
+  type CallToolRequest,
   CallToolRequestSchema,
-  CallToolResult,
+  type CallToolResult,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { toolLoader } from '@/tools/loader';
-import { ToolContext } from '@/tools/types';
+import { type ToolContext } from '@/tools/types';
 
 import { loggingContext } from '../http/context';
 

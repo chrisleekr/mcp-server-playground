@@ -1,4 +1,4 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { type Server } from '@modelcontextprotocol/sdk/server/index.js';
 
 import { loggingContext } from '@/core/server/http/context';
 

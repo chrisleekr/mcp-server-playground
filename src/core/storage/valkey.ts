@@ -1,9 +1,9 @@
 import Valkey from 'iovalkey';
 
-import { StorageValkeyConfig } from '@/config/type';
+import { type StorageValkeyConfig } from '@/config/type';
 import { loggingContext } from '@/core/server/http/context';
 
-import { Storage } from './types';
+import { type Storage } from './types';
 
 export class ValkeyStorage implements Storage {
   private client: Valkey;

@@ -1,6 +1,34 @@
 import { AsyncLocalStorage } from 'async_hooks';
 
-import { logger, LoggerInterface, LogLevel } from '@/utils/logger';
+import { logger, type LoggerInterface, type LogLevel } from '@/utils/logger';
+
+function logWithLevel(
+  loggerInstance: ReturnType<LoggerInterface['getLogger']>,
+  level: LogLevel,
+  data: Record<string, unknown>,
+  message: string
+): void {
+  switch (level) {
+    case 'trace':
+      loggerInstance.trace(data, message);
+      break;
+    case 'debug':
+      loggerInstance.debug(data, message);
+      break;
+    case 'info':
+      loggerInstance.info(data, message);
+      break;
+    case 'warn':
+      loggerInstance.warn(data, message);
+      break;
+    case 'error':
+      loggerInstance.error(data, message);
+      break;
+    case 'fatal':
+      loggerInstance.fatal(data, message);
+      break;
+  }
+}
 
 // References:
 //  https://nodejs.org/api/async_context.html
@@ -53,20 +81,22 @@ export const LoggingContext = (
       data?: Record<string, unknown>
     ): void => {
       const context = asyncLocalStorage.getStore();
+      const loggerInstance = logger.getLogger();
+
       if (!context) {
-        // If no context, log the message without the context
-        logger.getLogger()[level]({ ...data }, message);
+        logWithLevel(loggerInstance, level, { ...data }, message);
         return;
       }
 
-      // If context, log the message with the context
       const timestamp = Date.now();
       const requestElapsedTime =
-        context.requestStartTime > 0 && context.requestStartTime > 0
+        context.requestStartTime > 0
           ? timestamp - context.requestStartTime
           : undefined;
 
-      logger.getLogger()[level](
+      logWithLevel(
+        loggerInstance,
+        level,
         {
           ...data,
           ...context,
@@ -84,8 +114,10 @@ export const LoggingContext = (
       if (!context) {
         return;
       }
-      const updatedContext = { ...context, [key]: value };
-      asyncLocalStorage.enterWith(updatedContext);
+      const updatedContext = Object.assign({}, context, { [key]: value });
+      asyncLocalStorage.enterWith(
+        updatedContext as AsyncLocalStorageLoggingContext
+      );
     },
 
     getContextValue: <T>(key: string): T | undefined => {
@@ -93,7 +125,10 @@ export const LoggingContext = (
       if (!context) {
         return undefined;
       }
-      return context[key] as T | undefined;
+      if (!Object.prototype.hasOwnProperty.call(context, key)) {
+        return undefined;
+      }
+      return Reflect.get(context, key) as T | undefined;
     },
   };
 };

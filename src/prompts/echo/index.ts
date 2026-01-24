@@ -1,11 +1,11 @@
-import { GetPromptRequest } from '@modelcontextprotocol/sdk/types.js';
+import { type GetPromptRequest } from '@modelcontextprotocol/sdk/types.js';
 
 import { loggingContext, sendProgressNotification } from '@/core/server';
 import {
-  Prompt,
+  type Prompt,
   PromptBuilder,
-  PromptContext,
-  PromptResult,
+  type PromptContext,
+  type PromptResult,
 } from '@/prompts/types';
 
 import { EchoPromptInputSchema } from './types';

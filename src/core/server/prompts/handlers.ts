@@ -1,13 +1,13 @@
 import {
-  GetPromptRequest,
+  type GetPromptRequest,
   GetPromptRequestSchema,
-  GetPromptResult,
+  type GetPromptResult,
   ListPromptsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { loggingContext } from '@/core/server';
 import { promptLoader } from '@/prompts/loader';
-import { PromptContext } from '@/prompts/types';
+import { type PromptContext } from '@/prompts/types';
 
 export function setupPromptsHandlers(promptContext: PromptContext): void {
   const server = promptContext.server;

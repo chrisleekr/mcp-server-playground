@@ -6,13 +6,17 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { loggingContext, sendProgressNotification } from '@/core/server';
 import {
   ToolBuilder,
-  ToolContext,
-  ToolInputSchema,
-  ToolResult,
+  type ToolContext,
+  type ToolInputSchema,
+  type ToolResult,
 } from '@/tools/types';
 
 import packageJson from '../../../package.json';
-import { StreamingInput, StreamingInputSchema, StreamingOutput } from './types';
+import {
+  type StreamingInput,
+  StreamingInputSchema,
+  type StreamingOutput,
+} from './types';
 
 /**
  * Streaming tool that simulates real-time data streaming
@@ -64,6 +68,7 @@ async function* executeStreaming(
 
       // Send progress update
       if (context.server) {
+        // eslint-disable-next-line no-await-in-loop -- streaming requires sequential progress updates
         await sendProgressNotification(context.server, {
           progressToken,
           progress: i,
@@ -104,6 +109,7 @@ async function* executeStreaming(
 
       // Wait for the specified interval (except for the last iteration)
       if (i < count) {
+        // eslint-disable-next-line no-await-in-loop -- intentional delay between streaming data points
         await setTimeout(intervalMs);
       }
     }

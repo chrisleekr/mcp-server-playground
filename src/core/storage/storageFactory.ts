@@ -1,7 +1,7 @@
-import { StorageConfig } from '@/config/type';
+import { type StorageConfig } from '@/config/type';
 
 import { MemoryStorage } from './memory';
-import { Storage } from './types';
+import { type Storage } from './types';
 import { ValkeyStorage } from './valkey';
 
 export function createStorage(config: StorageConfig): Storage {

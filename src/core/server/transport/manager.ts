@@ -1,11 +1,12 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { type Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import { type Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { type InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import type express from 'express';
 
 import { config } from '@/config/manager';
 import { createStorage } from '@/core/storage/storageFactory';
-import { Storage } from '@/core/storage/types';
+import { type Storage } from '@/core/storage/types';
 
 import { loggingContext } from '../http/context';
 
@@ -56,10 +57,10 @@ export class TransportManager {
       initialRequest: InitializeRequest;
     }
   ): Promise<void> {
-    // TODO: Make this to be expired after a certain time.
     await this.storage.set(
       `${this.CACHE_KEY_PREFIX}:${sessionId}`,
-      JSON.stringify(sessionData)
+      JSON.stringify(sessionData),
+      config.storage.sessionTTL
     );
   }
 
@@ -125,7 +126,7 @@ export class TransportManager {
       }
     );
 
-    await this.server.connect(transport);
+    await this.server.connect(transport as Transport);
 
     return transport;
   }

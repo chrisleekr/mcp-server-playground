@@ -1,12 +1,12 @@
 import {
   DescribeServicesCommand,
-  DescribeServicesCommandOutput,
+  type DescribeServicesCommandOutput,
   DescribeTasksCommand,
-  DescribeTasksCommandInput,
-  DescribeTasksCommandOutput,
+  type DescribeTasksCommandInput,
+  type DescribeTasksCommandOutput,
   ECSClient,
   ListClustersCommand,
-  ListClustersCommandOutput,
+  type ListClustersCommandOutput,
 } from '@aws-sdk/client-ecs';
 
 import { config } from '@/config/manager';

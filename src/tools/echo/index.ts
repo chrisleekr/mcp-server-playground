@@ -6,15 +6,15 @@ import { loggingContext, sendProgressNotification } from '@/core/server';
 import {
   createResourceLink,
   createStructuredContent,
-  Tool,
+  type Tool,
   ToolBuilder,
-  ToolContext,
-  ToolInputSchema,
-  ToolResult,
+  type ToolContext,
+  type ToolInputSchema,
+  type ToolResult,
 } from '@/tools/types';
 
 import packageJson from '../../../package.json';
-import { EchoInput, EchoInputSchema, EchoOutput } from './types';
+import { type EchoInput, EchoInputSchema, type EchoOutput } from './types';
 
 /**
  * Echo tool implementation

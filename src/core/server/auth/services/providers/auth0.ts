@@ -1,25 +1,25 @@
 import axios, { AxiosError } from 'axios';
 import { createHash, randomBytes } from 'crypto';
-import { Application, Request, Response } from 'express';
+import { type Application, type Request, type Response } from 'express';
 import { URL } from 'url';
 
 import { config } from '@/config/manager';
-import { Auth0Config } from '@/config/type';
+import { type Auth0Config } from '@/config/type';
 import { loggingContext } from '@/core/server/http/context';
 
-import { StorageService } from '../storageService';
+import { type StorageService } from '../storageService';
 import {
-  OAuthServiceAuth0Session,
-  OAuthServiceAuthorizationSession,
-  OAuthServiceHandleAuthorizationResponse,
-  OAuthServiceTokenRecord,
+  type OAuthServiceAuth0Session,
+  type OAuthServiceAuthorizationSession,
+  type OAuthServiceHandleAuthorizationResponse,
+  type OAuthServiceTokenRecord,
 } from '../types';
 import {
-  Auth0ProviderAuthorizationUrlArgs,
-  Auth0ProviderCallbackParams,
-  Auth0ProviderExchangeCodeForTokensArgs,
-  Auth0ProviderToken,
-  Auth0ProviderUserInfo,
+  type Auth0ProviderAuthorizationUrlArgs,
+  type Auth0ProviderCallbackParams,
+  type Auth0ProviderExchangeCodeForTokensArgs,
+  type Auth0ProviderToken,
+  type Auth0ProviderUserInfo,
 } from './types';
 
 export class Auth0Provider {

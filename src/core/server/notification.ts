@@ -1,6 +1,6 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { type Server } from '@modelcontextprotocol/sdk/server/index.js';
 
-import { loggingContext, ProgressToken } from '@/core/server';
+import { loggingContext, type ProgressToken } from '@/core/server';
 
 export interface ProgressNotificationParams {
   progressToken: ProgressToken;

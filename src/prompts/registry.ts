@@ -1,4 +1,4 @@
-import { Prompt, PromptDefinition } from '@/prompts/types';
+import { type Prompt, type PromptDefinition } from '@/prompts/types';
 
 /**
  * Prompt registry implementation

@@ -2,17 +2,17 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { loggingContext, sendProgressNotification } from '@/core/server';
 import {
-  Tool,
+  type Tool,
   ToolBuilder,
-  ToolContext,
-  ToolInputSchema,
-  ToolResult,
+  type ToolContext,
+  type ToolInputSchema,
+  type ToolResult,
 } from '@/tools/types';
 
 import {
-  SystemTimeInput,
+  type SystemTimeInput,
   SystemTimeInputSchema,
-  SystemTimeOutput,
+  type SystemTimeOutput,
 } from './types';
 
 /**
@@ -88,25 +88,25 @@ function formatCustom(date: Date, format: string, timezone?: string): string {
       ? new Date(date.toLocaleString('en-US', { timeZone: timezone }))
       : date;
 
-  const tokens: Record<string, string> = {
-    YYYY: d.getFullYear().toString(),
-    YY: d.getFullYear().toString().slice(-2),
-    MM: (d.getMonth() + 1).toString().padStart(2, '0'),
-    M: (d.getMonth() + 1).toString(),
-    DD: d.getDate().toString().padStart(2, '0'),
-    D: d.getDate().toString(),
-    HH: d.getHours().toString().padStart(2, '0'),
-    H: d.getHours().toString(),
-    mm: d.getMinutes().toString().padStart(2, '0'),
-    m: d.getMinutes().toString(),
-    ss: d.getSeconds().toString().padStart(2, '0'),
-    s: d.getSeconds().toString(),
-    SSS: d.getMilliseconds().toString().padStart(3, '0'),
-  };
+  const replacements: Array<[RegExp, string]> = [
+    [/YYYY/g, d.getFullYear().toString()],
+    [/YY/g, d.getFullYear().toString().slice(-2)],
+    [/MM/g, (d.getMonth() + 1).toString().padStart(2, '0')],
+    [/DD/g, d.getDate().toString().padStart(2, '0')],
+    [/HH/g, d.getHours().toString().padStart(2, '0')],
+    [/mm/g, d.getMinutes().toString().padStart(2, '0')],
+    [/ss/g, d.getSeconds().toString().padStart(2, '0')],
+    [/SSS/g, d.getMilliseconds().toString().padStart(3, '0')],
+    [/M/g, (d.getMonth() + 1).toString()],
+    [/D/g, d.getDate().toString()],
+    [/H/g, d.getHours().toString()],
+    [/m/g, d.getMinutes().toString()],
+    [/s/g, d.getSeconds().toString()],
+  ];
 
   let result = format;
-  for (const [token, value] of Object.entries(tokens)) {
-    result = result.replace(new RegExp(token, 'g'), value);
+  for (const [pattern, value] of replacements) {
+    result = result.replace(pattern, value);
   }
 
   return result;
