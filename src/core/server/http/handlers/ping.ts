@@ -17,7 +17,7 @@ export function setupPingHandler(app: express.Application): void {
   });
 
   app.get('/health', (_req, res) => {
-    const includeDetails = config.server.environment !== 'production';
+    const includeDetails = config.server.environment !== 'prod';
     const response: HealthResponse = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
