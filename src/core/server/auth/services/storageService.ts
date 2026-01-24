@@ -293,7 +293,7 @@ export class StorageService {
 
     try {
       const token = await this.storage.get(`token:${accessToken}`);
-      if (token === null || token.length === 0) {
+      if (token === null) {
         return null;
       }
 
@@ -333,7 +333,7 @@ export class StorageService {
 
     try {
       const token = await this.storage.get(`token:${refreshToken}`);
-      if (token === null || token.length === 0) {
+      if (token === null) {
         return null;
       }
 
