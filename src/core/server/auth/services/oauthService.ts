@@ -25,6 +25,22 @@ import {
   type OAuthServiceValidateAccessToken,
 } from './types';
 
+/**
+ * OAuth 2.0 service implementing Dynamic Client Registration and token management.
+ *
+ * This service acts as an OAuth proxy, implementing MCP's required Dynamic Client
+ * Registration while delegating actual authentication to Auth0. This approach
+ * enables standardized MCP client registration without exposing Auth0's DCR endpoint.
+ *
+ * OAuth Flow:
+ * 1. Client calls POST /oauth/register to get client_id/secret
+ * 2. Client initiates authorization via GET /oauth/authorize
+ * 3. User is redirected to Auth0 for authentication
+ * 4. Auth0 callback exchanges code for tokens
+ * 5. Client exchanges authorization code for access/refresh tokens
+ *
+ * @see {@link https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization}
+ */
 export class OAuthService {
   private auth0Provider: Auth0Provider;
   private jwtService: JWTService;
@@ -36,6 +52,12 @@ export class OAuthService {
     this.auth0Provider = new Auth0Provider(this.storageService);
   }
 
+  /**
+   * Returns OAuth 2.0 Authorization Server Metadata (RFC 8414).
+   *
+   * Used by clients to discover OAuth endpoints and capabilities.
+   * Served at /.well-known/oauth-authorization-server
+   */
   public getOAuthAuthorizationServer(): OAuthServiceAuthorizationServer {
     const { baseUrl, issuer } = config.server.auth;
 
@@ -65,6 +87,15 @@ export class OAuthService {
     };
   }
 
+  /**
+   * Implements OAuth 2.0 Dynamic Client Registration (RFC 7591).
+   *
+   * Generates a unique client_id and client_secret for MCP clients.
+   * This enables MCP clients to register without pre-configured credentials.
+   *
+   * @param args - Client registration request with redirect URIs and metadata
+   * @returns Client credentials and registration metadata
+   */
   public async registerClient(
     args: OAuthServiceRegisterClientRequest
   ): Promise<OAuthServiceRegisterClientResponse> {
@@ -79,7 +110,7 @@ export class OAuthService {
       clientSecret,
       applicationType: 'web',
       redirectUris: args.redirect_uris,
-      clientName: args.client_name ?? `MCP Client ${args.client_id}`,
+      clientName: args.client_name ?? `MCP Client ${clientId}`,
       scope: args.scope ?? config.server.auth.auth0.scope,
       grantTypes: args.grant_types ?? ['authorization_code'],
       responseTypes: args.response_types ?? ['code'],
@@ -165,6 +196,16 @@ export class OAuthService {
     }
   }
 
+  /**
+   * Initiates the OAuth 2.0 authorization flow.
+   *
+   * Creates an authorization session, generates PKCE challenge, and returns
+   * a redirect URL to Auth0 for user authentication.
+   *
+   * @param args - Authorization request with client_id, redirect_uri, scope, etc.
+   * @returns Redirect URL to the Auth0 authorization endpoint
+   * @throws {Error} If client validation fails or request is invalid
+   */
   public async handleAuthorization(
     args: OAuthServiceHandleAuthorizationRequest
   ): Promise<OAuthServiceHandleAuthorizationResponse> {
@@ -233,20 +274,36 @@ export class OAuthService {
     return { redirectUrl };
   }
 
+  /**
+   * Handles OAuth 2.0 token requests (authorization_code and refresh_token grants).
+   *
+   * For authorization_code: Exchanges the code for access and refresh tokens.
+   * For refresh_token: Issues a new access token using the refresh token.
+   *
+   * @param args - Token request with grant_type, code/refresh_token, and client credentials
+   * @returns Access token, refresh token, and token metadata
+   * @throws {Error} If client validation fails or token/code is invalid
+   */
   public async handleTokenRequest(
     args: OAuthServiceHandleTokenRequest
   ): Promise<OAuthServiceHandleTokenResponse> {
     loggingContext.log('debug', 'Handling token request', {
       data: {
-        args,
+        grant_type: args.grant_type,
+        client_id: args.client_id,
       },
     });
 
-    if (args.grant_type === 'authorization_code') {
-      return this.handleAuthorizationCodeGrant(args);
+    switch (args.grant_type) {
+      case 'authorization_code':
+        return this.handleAuthorizationCodeGrant(args);
+      case 'refresh_token':
+        return this.handleRefreshTokenGrant(args);
+      default: {
+        const exhaustiveCheck: never = args.grant_type;
+        throw new Error(`Unsupported grant_type: ${exhaustiveCheck as string}`);
+      }
     }
-
-    return this.handleRefreshTokenGrant(args);
   }
 
   private validateAuthorizationCodeClientSecret(
@@ -261,8 +318,7 @@ export class OAuthService {
           'Client secret validation failed, it is optional for PKCE flows',
           {
             data: {
-              args,
-              client,
+              client_id: args.client_id,
             },
           }
         );
@@ -319,10 +375,9 @@ export class OAuthService {
   ): Promise<OAuthServiceTokenRecord> {
     loggingContext.log('debug', 'Storing authorization code grant token', {
       data: {
-        accessToken,
-        refreshToken,
-        tokenRecord,
-        args,
+        clientId: args.client_id,
+        userId: tokenRecord.userId,
+        scope: tokenRecord.scope,
       },
     });
     const newTokenRecord: OAuthServiceTokenRecord = {
@@ -481,14 +536,24 @@ export class OAuthService {
     return response;
   }
 
+  /**
+   * Validates an access token and returns associated claims.
+   *
+   * Verifies JWT signature, expiration, and checks token exists in storage.
+   * Used by the authentication middleware to protect MCP endpoints.
+   *
+   * @param token - The access token to validate
+   * @param expectedAudience - Optional audience claim to validate (RFC 8707)
+   * @returns Validation result with claims and token record if valid
+   */
   public async validateAccessToken(
     token: string,
     expectedAudience?: string
   ): Promise<OAuthServiceValidateAccessToken> {
     loggingContext.log('debug', 'Validating access token', {
       data: {
-        token,
         expectedAudience,
+        hasToken: token.length > 0,
       },
     });
 
@@ -498,10 +563,7 @@ export class OAuthService {
       if (!claims) {
         loggingContext.log('debug', 'Invalid access token', {
           data: {
-            token,
             valid: false,
-            claims,
-            tokenRecord: null,
           },
         });
         return { valid: false, claims: null, tokenRecord: null };
@@ -566,6 +628,15 @@ export class OAuthService {
     }
   }
 
+  /**
+   * Revokes an access or refresh token (RFC 7009).
+   *
+   * Removes the token from storage, preventing further use.
+   * Accepts either access tokens or refresh tokens.
+   *
+   * @param token - The token to revoke
+   * @returns True if token was found and revoked, false otherwise
+   */
   public async revokeToken(token: string): Promise<boolean> {
     try {
       if (await this.storageService.deleteToken(token)) {

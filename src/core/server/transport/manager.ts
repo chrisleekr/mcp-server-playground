@@ -3,6 +3,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { type Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { type InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import type express from 'express';
+import { z } from 'zod';
 
 import { config } from '@/config/manager';
 import { createStorage } from '@/core/storage/storageFactory';
@@ -10,6 +11,24 @@ import { type Storage } from '@/core/storage/types';
 
 import { loggingContext } from '../http/context';
 
+/**
+ * Manages MCP transport instances and session state for clustered deployments.
+ *
+ * In a single-server deployment, transports are stored in memory and associated
+ * with session IDs. In a clustered deployment, this class enables session replay
+ * to recreate transports on any server instance.
+ *
+ * Session Replay Mechanism:
+ * 1. When a client first connects, the InitializeRequest is saved to storage
+ * 2. The transport is created and stored in this server's memory
+ * 3. If a subsequent request hits a different server instance:
+ *    - The session data is retrieved from shared storage (Valkey)
+ *    - The InitializeRequest is replayed with mocked req/res objects
+ *    - A new transport is created and connected to the MCP server
+ *    - The actual request can then be processed normally
+ *
+ * @see {@link https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/102}
+ */
 export class TransportManager {
   // MCP server instance.
   private server: Server;
@@ -51,6 +70,15 @@ export class TransportManager {
     return session !== null && session.trim() !== '';
   }
 
+  /**
+   * Persists session data to shared storage for cross-instance session replay.
+   *
+   * Called after a successful MCP initialization to store the InitializeRequest.
+   * This enables any server instance in the cluster to recreate the transport.
+   *
+   * @param sessionId - The MCP session ID
+   * @param sessionData - Contains the InitializeRequest to be replayed
+   */
   public async saveSession(
     sessionId: string,
     sessionData: {
@@ -74,6 +102,21 @@ export class TransportManager {
     return this.transports.get(sessionId);
   }
 
+  /**
+   * Replays the initial MCP handshake to recreate a transport on this server instance.
+   *
+   * This is the core of the session replay mechanism for clustered deployments.
+   * When a request arrives at a server that doesn't have the transport in memory,
+   * this method retrieves the original InitializeRequest from storage and replays it
+   * to establish the transport connection.
+   *
+   * The replay uses mocked Express req/res objects since we don't need the actual
+   * HTTP response - we just need to initialize the MCP transport state.
+   *
+   * @param sessionId - The MCP session ID from the request header
+   * @returns The newly created and connected transport
+   * @throws {Error} If the session is not found in storage
+   */
   public async replayInitialRequest(
     sessionId: string
   ): Promise<StreamableHTTPServerTransport> {
@@ -83,17 +126,33 @@ export class TransportManager {
     if (session === null || session.trim() === '') {
       throw new Error('Session not found');
     }
-    const sessionData = JSON.parse(session) as {
+
+    const SessionDataSchema = z.object({
+      initialRequest: z.unknown(),
+    });
+
+    let sessionDataRaw: unknown;
+    try {
+      sessionDataRaw = JSON.parse(session);
+    } catch {
+      throw new Error('Invalid session payload');
+    }
+
+    const parsed = SessionDataSchema.safeParse(sessionDataRaw);
+    if (!parsed.success) {
+      throw new Error('Invalid session payload');
+    }
+
+    const sessionData = parsed.data as {
       initialRequest: InitializeRequest;
     };
+
     loggingContext.log('debug', 'Replaying initial request', {
       data: { sessionData },
     });
 
     const transport = this.createTransport(sessionId);
 
-    // Replay initial request with dummy request and response.
-    // This is to simulate the initial request and response.
     await transport.handleRequest(
       {
         method: 'POST',
@@ -106,6 +165,9 @@ export class TransportManager {
       } as unknown as express.Request,
       {
         on: () => {},
+        setHeader: () => {},
+        write: () => true,
+        end: () => {},
         writeHead: () => {
           return {
             end: () => {},
@@ -131,6 +193,15 @@ export class TransportManager {
     return transport;
   }
 
+  /**
+   * Creates a new StreamableHTTPServerTransport for the given session.
+   *
+   * The transport is stored in memory and associated with the session ID.
+   * An onclose handler is registered to clean up the transport when closed.
+   *
+   * @param sessionId - The MCP session ID to associate with this transport
+   * @returns The newly created transport instance
+   */
   public createTransport(sessionId: string): StreamableHTTPServerTransport {
     const transport = new StreamableHTTPServerTransport({
       /**
