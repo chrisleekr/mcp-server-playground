@@ -199,11 +199,11 @@ flowchart LR
 
 ## Error Handling
 
-| Error            | Cause                               | Resolution                                                                |
-| ---------------- | ----------------------------------- | ------------------------------------------------------------------------- |
+| Error            | Cause                               | Resolution                                                                    |
+| ---------------- | ----------------------------------- | ----------------------------------------------------------------------------- |
 | `Access Denied`  | Insufficient S3 permissions         | Ensure credentials have `s3:ListAllMyBuckets` and `s3:ListBucket` permissions |
-| `NoSuchBucket`   | Bucket doesn't exist or was deleted | Verify bucket name and that it exists in the account                      |
-| `Invalid region` | Bucket is in a different region     | Objects are listed using the bucket's region automatically                |
+| `NoSuchBucket`   | Bucket doesn't exist or was deleted | Verify bucket name and that it exists in the account                          |
+| `Invalid region` | Bucket is in a different region     | Objects are listed using the bucket's region automatically                    |
 
 ## Required IAM Permissions
 

@@ -92,7 +92,7 @@ export class MCPServer {
         });
       });
 
-      this.nodeServer.on('error', (error) => {
+      this.nodeServer.on('error', error => {
         loggingContext.log('error', 'Failed to start MCP Server', {
           data: { host, port },
           error: {

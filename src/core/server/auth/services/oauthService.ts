@@ -301,9 +301,7 @@ export class OAuthService {
         return this.handleRefreshTokenGrant(args);
       default: {
         const exhaustiveCheck: never = args.grant_type;
-        throw new Error(
-          `Unsupported grant_type: ${exhaustiveCheck as string}`
-        );
+        throw new Error(`Unsupported grant_type: ${exhaustiveCheck as string}`);
       }
     }
   }
