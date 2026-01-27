@@ -110,7 +110,7 @@ export class OAuthService {
       clientSecret,
       applicationType: 'web',
       redirectUris: args.redirect_uris,
-      clientName: args.client_name ?? `MCP Client ${args.client_id}`,
+      clientName: args.client_name ?? `MCP Client ${clientId}`,
       scope: args.scope ?? config.server.auth.auth0.scope,
       grantTypes: args.grant_types ?? ['authorization_code'],
       responseTypes: args.response_types ?? ['code'],
@@ -289,15 +289,23 @@ export class OAuthService {
   ): Promise<OAuthServiceHandleTokenResponse> {
     loggingContext.log('debug', 'Handling token request', {
       data: {
-        args,
+        grant_type: args.grant_type,
+        client_id: args.client_id,
       },
     });
 
-    if (args.grant_type === 'authorization_code') {
-      return this.handleAuthorizationCodeGrant(args);
+    switch (args.grant_type) {
+      case 'authorization_code':
+        return this.handleAuthorizationCodeGrant(args);
+      case 'refresh_token':
+        return this.handleRefreshTokenGrant(args);
+      default: {
+        const exhaustiveCheck: never = args.grant_type;
+        throw new Error(
+          `Unsupported grant_type: ${exhaustiveCheck as string}`
+        );
+      }
     }
-
-    return this.handleRefreshTokenGrant(args);
   }
 
   private validateAuthorizationCodeClientSecret(
@@ -312,8 +320,7 @@ export class OAuthService {
           'Client secret validation failed, it is optional for PKCE flows',
           {
             data: {
-              args,
-              client,
+              client_id: args.client_id,
             },
           }
         );
@@ -370,10 +377,9 @@ export class OAuthService {
   ): Promise<OAuthServiceTokenRecord> {
     loggingContext.log('debug', 'Storing authorization code grant token', {
       data: {
-        accessToken,
-        refreshToken,
-        tokenRecord,
-        args,
+        clientId: args.client_id,
+        userId: tokenRecord.userId,
+        scope: tokenRecord.scope,
       },
     });
     const newTokenRecord: OAuthServiceTokenRecord = {
@@ -548,8 +554,8 @@ export class OAuthService {
   ): Promise<OAuthServiceValidateAccessToken> {
     loggingContext.log('debug', 'Validating access token', {
       data: {
-        token,
         expectedAudience,
+        hasToken: token.length > 0,
       },
     });
 
@@ -559,10 +565,7 @@ export class OAuthService {
       if (!claims) {
         loggingContext.log('debug', 'Invalid access token', {
           data: {
-            token,
             valid: false,
-            claims,
-            tokenRecord: null,
           },
         });
         return { valid: false, claims: null, tokenRecord: null };

@@ -92,6 +92,16 @@ export class MCPServer {
         });
       });
 
+      this.nodeServer.on('error', (error) => {
+        loggingContext.log('error', 'Failed to start MCP Server', {
+          data: { host, port },
+          error: {
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+        });
+      });
+
       // Set keepAliveTimeout and headersTimeout for the http server
       this.nodeServer.keepAliveTimeout = 60000;
       this.nodeServer.headersTimeout = 65000;

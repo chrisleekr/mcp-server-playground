@@ -3,6 +3,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { type Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { type InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import type express from 'express';
+import { z } from 'zod';
 
 import { config } from '@/config/manager';
 import { createStorage } from '@/core/storage/storageFactory';
@@ -125,9 +126,27 @@ export class TransportManager {
     if (session === null || session.trim() === '') {
       throw new Error('Session not found');
     }
-    const sessionData = JSON.parse(session) as {
+
+    const SessionDataSchema = z.object({
+      initialRequest: z.unknown(),
+    });
+
+    let sessionDataRaw: unknown;
+    try {
+      sessionDataRaw = JSON.parse(session);
+    } catch {
+      throw new Error('Invalid session payload');
+    }
+
+    const parsed = SessionDataSchema.safeParse(sessionDataRaw);
+    if (!parsed.success) {
+      throw new Error('Invalid session payload');
+    }
+
+    const sessionData = parsed.data as {
       initialRequest: InitializeRequest;
     };
+
     loggingContext.log('debug', 'Replaying initial request', {
       data: { sessionData },
     });
@@ -146,6 +165,9 @@ export class TransportManager {
       } as unknown as express.Request,
       {
         on: () => {},
+        setHeader: () => {},
+        write: () => true,
+        end: () => {},
         writeHead: () => {
           return {
             end: () => {},
