@@ -82,7 +82,7 @@ When using `format: "custom"`, the following tokens are supported:
     "format": "iso",
     "utc": "2026-01-27T10:30:00.000Z",
     "unix": 1769494200,
-    "human": "Monday, January 27, 2026 at 10:30:00 AM Coordinated Universal Time"
+    "human": "Tuesday, January 27, 2026 at 10:30:00 AM Coordinated Universal Time"
   }
 }
 ```
@@ -100,7 +100,7 @@ When using `format: "custom"`, the following tokens are supported:
     "format": "unix",
     "utc": "2026-01-27T10:30:00.000Z",
     "unix": 1769494200,
-    "human": "Monday, January 27, 2026 at 10:30:00 AM Coordinated Universal Time"
+    "human": "Tuesday, January 27, 2026 at 10:30:00 AM Coordinated Universal Time"
   }
 }
 ```
@@ -120,7 +120,7 @@ When using `format: "custom"`, the following tokens are supported:
     "format": "custom",
     "utc": "2026-01-27T10:30:00.000Z",
     "unix": 1769494200,
-    "human": "Monday, January 27, 2026 at 5:30:00 AM Eastern Standard Time"
+    "human": "Tuesday, January 27, 2026 at 5:30:00 AM Eastern Standard Time"
   }
 }
 ```
