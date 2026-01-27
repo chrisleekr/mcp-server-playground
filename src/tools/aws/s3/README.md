@@ -227,7 +227,7 @@ flowchart LR
 
 ## Performance Considerations
 
-- Buckets are processed in batches of 5 to avoid API rate limiting
+- Buckets are processed in batches of 5 to avoid API rate-limiting
 - Large buckets with many objects may take time to list
 - Use `keyPrefix` to limit results for large buckets
 - Consider using more specific `bucketPrefix` to reduce the number of buckets scanned

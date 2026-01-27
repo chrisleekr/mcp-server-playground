@@ -77,7 +77,8 @@ export class MCPServer {
    * Configures the Express server with all middleware, routes, and transport handlers.
    * Sets appropriate timeouts for long-running streaming connections.
    *
-   * @throws {Error} If the server fails to start (port in use, permission denied, etc.)
+   * @throws {Error} If the server fails to start synchronously (e.g., invalid configuration)
+   * @remarks Asynchronous startup errors (e.g., port in use) terminate the process with exit code 1
    */
   public start(): void {
     try {
@@ -100,6 +101,7 @@ export class MCPServer {
             stack: error instanceof Error ? error.stack : undefined,
           },
         });
+        process.exit(1);
       });
 
       // Set keepAliveTimeout and headersTimeout for the http server
