@@ -11,6 +11,22 @@ import { loadTools, setupToolHandlers } from '@/core/server/tools';
 import { type PromptContext } from '@/prompts/types';
 import { type ToolContext } from '@/tools/types';
 
+/**
+ * Main MCP Server class that orchestrates HTTP transport, tool/prompt registration,
+ * and session management.
+ *
+ * This class initializes the MCP SDK server with configured capabilities,
+ * sets up tool and prompt handlers, and manages the HTTP server lifecycle.
+ *
+ * @example
+ * ```typescript
+ * const server = new MCPServer();
+ * server.start();
+ *
+ * // Graceful shutdown
+ * process.on('SIGTERM', () => server.stop());
+ * ```
+ */
 export class MCPServer {
   private server: Server;
   private promptContext: PromptContext;
@@ -55,6 +71,14 @@ export class MCPServer {
     setupErrorHandling(this.server);
   }
 
+  /**
+   * Starts the HTTP server and begins accepting MCP connections.
+   *
+   * Configures the Express server with all middleware, routes, and transport handlers.
+   * Sets appropriate timeouts for long-running streaming connections.
+   *
+   * @throws {Error} If the server fails to start (port in use, permission denied, etc.)
+   */
   public start(): void {
     try {
       this.httpServer = setupHttpServer(this.server);
@@ -82,6 +106,12 @@ export class MCPServer {
     }
   }
 
+  /**
+   * Gracefully stops the HTTP server.
+   *
+   * Closes all active connections and releases the port.
+   * Safe to call multiple times; subsequent calls are no-ops.
+   */
   public stop(): void {
     loggingContext.log('info', 'Stopping MCP Server...');
     if (this.nodeServer !== null) {
@@ -93,7 +123,14 @@ export class MCPServer {
     }
   }
 
-  // Getter for server instance (for tools that need direct access)
+  /**
+   * Returns the underlying MCP SDK Server instance.
+   *
+   * Useful for tools that need direct access to send notifications
+   * or access server capabilities.
+   *
+   * @returns The MCP SDK Server instance
+   */
   public getServerInstance(): Server {
     return this.server;
   }

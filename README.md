@@ -17,6 +17,18 @@ A playground for Model Context Protocol (MCP) server built with TypeScript and S
   - `project`: Find keywords in the current project directory
 - Prompts: `echo`
 
+## Documentation
+
+- [Architecture Overview](docs/ARCHITECTURE.md) - System design, data flows, and diagrams
+- [Environment Variables](.env.example) - Configuration options
+- **Tool Documentation** (in each tool directory):
+  - [echo](src/tools/echo/README.md) - Message echo with transformations
+  - [system-time](src/tools/system-time/README.md) - Current time with timezone support
+  - [streaming](src/tools/streaming/README.md) - Real-time data streaming simulation
+  - [project](src/tools/project/README.md) - Keyword search in project files
+  - [aws-ecs](src/tools/aws/ecs/README.md) - ECS investigation with AI analysis
+  - [aws-s3](src/tools/aws/s3/README.md) - S3 bucket and object listing
+
 ## Why this project exists?
 
 - The Model Context Protocol spec [requires Dynamic Application Registration](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#dynamic-client-registration) because it provides a standardized way for MCP clients to automatically register with new servers and obtain OAuth client IDs without user interaction. The main reason for this mechanism is because MCP clients can't know all possible services in advance and manual registration would create significant effort for users and it is not scalable. If do not support Dynamic Application Registration, then MCP clients need to provide OAuth client ID and secret to the server, which is not secure and not scalable.
@@ -149,9 +161,7 @@ When the request comes in to alternative MCP server instance, it will check if t
 
 Inspired from [https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/102](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/102)
 
-The below diagram shows the flow of the stateful session management.
-
-<img width="681" height="882" alt="Image" src="https://github.com/user-attachments/assets/7f56339e-2665-47cb-a882-69d3c7096b47" />
+See [Architecture - Stateful Session Management](docs/ARCHITECTURE.md#stateful-session-management) for the detailed sequence diagram.
 
 ## TODO
 
