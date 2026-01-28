@@ -19,6 +19,18 @@ import {
 
 const oauthService = new OAuthService();
 
+/**
+ * Sets the WWW-Authenticate header on 401 responses per RFC 9728 Section 5.1.
+ * This header indicates the location of the resource server metadata URL,
+ * enabling MCP clients to discover the authorization server.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#authorization-server-location
+ */
+function setWWWAuthenticateHeader(res: Response): void {
+  const resourceMetadataURL = `${config.server.auth.issuer}/.well-known/oauth-protected-resource`;
+  res.setHeader('WWW-Authenticate', `Bearer resource="${resourceMetadataURL}"`);
+}
+
 function parseBearerToken(req: Request): string {
   const authHeader = req.headers.authorization ?? '';
   if (!authHeader.startsWith('Bearer ')) {
@@ -44,6 +56,7 @@ export function requireAuth(): (
 
     if (token.length === 0) {
       loggingContext.log('warn', 'No token provided');
+      setWWWAuthenticateHeader(res);
       res.status(401).json({ error: 'Unauthorized - No token provided' });
       return;
     }
@@ -56,6 +69,7 @@ export function requireAuth(): (
       );
       if (!result.valid) {
         loggingContext.log('warn', 'Invalid token provided');
+        setWWWAuthenticateHeader(res);
         res.status(401).json({ error: 'Unauthorized - Invalid token' });
         return;
       }
@@ -66,6 +80,7 @@ export function requireAuth(): (
         error: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
       });
+      setWWWAuthenticateHeader(res);
       res.status(401).json({
         error: 'Unauthorized - Failed to validate token',
       });

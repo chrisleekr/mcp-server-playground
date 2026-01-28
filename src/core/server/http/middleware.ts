@@ -1,3 +1,7 @@
+import {
+  DEFAULT_NEGOTIATED_PROTOCOL_VERSION,
+  SUPPORTED_PROTOCOL_VERSIONS,
+} from '@modelcontextprotocol/sdk/types.js';
 import bodyParser from 'body-parser';
 import {
   type Application,
@@ -19,25 +23,45 @@ import {
   loggingContext,
 } from './context';
 
-// MCP Protocol Version constants
-const CURRENT_MCP_VERSION = '2025-06-18';
-const FALLBACK_MCP_VERSION = '2025-03-26';
-const SUPPORTED_MCP_VERSIONS = [CURRENT_MCP_VERSION, FALLBACK_MCP_VERSION];
-
+/**
+ * Sets up CORS middleware with strict Origin validation for MCP endpoints.
+ *
+ * Per MCP specification, servers MUST validate the Origin header on all incoming
+ * connections to prevent DNS rebinding attacks. Requests from untrusted origins
+ * are rejected with 403 Forbidden on MCP endpoints.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#security-warning
+ */
 function setupCorsMiddleware(app: Application): void {
   app.use((req, res, next) => {
     const origin = req.headers.origin;
     const allowedOrigins = config.server.http.corsOrigins;
+    const isMcpEndpoint = req.path.startsWith('/mcp');
 
+    // Strict Origin validation for MCP endpoints (DNS rebinding protection)
+    if (
+      isMcpEndpoint &&
+      origin !== undefined &&
+      !allowedOrigins.includes(origin) &&
+      !allowedOrigins.includes('*')
+    ) {
+      loggingContext.log(
+        'warn',
+        'Origin validation failed - rejecting request',
+        {
+          data: { origin, allowedOrigins, path: req.path },
+        }
+      );
+      res.status(403).json({ error: 'Forbidden - Origin not allowed' });
+      return;
+    }
+
+    // Set CORS headers for allowed origins
     if (allowedOrigins.includes('*')) {
       res.header('Access-Control-Allow-Origin', '*');
     } else if (origin !== undefined && allowedOrigins.includes(origin)) {
       res.header('Access-Control-Allow-Origin', origin);
       res.header('Vary', 'Origin');
-    } else if (origin !== undefined) {
-      loggingContext.log('debug', 'CORS origin not in allowed list', {
-        data: { origin, allowedOrigins },
-      });
     }
 
     res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -98,31 +122,29 @@ export function setupMiddleware(app: Application): void {
     const protocolVersion = req.headers['mcp-protocol-version'] as string;
 
     if (!protocolVersion) {
-      // For backward compatibility, default to 2025-03-26 if version can't be detected
       loggingContext.log(
         'warn',
         'Missing MCP-Protocol-Version header, defaulting to fallback version',
         {
           data: {
-            fallbackVersion: FALLBACK_MCP_VERSION,
+            fallbackVersion: DEFAULT_NEGOTIATED_PROTOCOL_VERSION,
             path: req.path,
             method: req.method,
           },
         }
       );
-      // Set the fallback version in request context
-      req.headers['mcp-protocol-version'] = FALLBACK_MCP_VERSION;
-    } else if (!SUPPORTED_MCP_VERSIONS.includes(protocolVersion)) {
+      req.headers['mcp-protocol-version'] = DEFAULT_NEGOTIATED_PROTOCOL_VERSION;
+    } else if (!SUPPORTED_PROTOCOL_VERSIONS.includes(protocolVersion)) {
       loggingContext.log('error', 'Unsupported MCP protocol version', {
         data: {
           requestedVersion: protocolVersion,
-          supportedVersions: SUPPORTED_MCP_VERSIONS,
+          supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
           path: req.path,
         },
       });
       res.status(400).json({
         error: 'Unsupported MCP protocol version',
-        supported_versions: SUPPORTED_MCP_VERSIONS,
+        supported_versions: SUPPORTED_PROTOCOL_VERSIONS,
         requested_version: protocolVersion,
       });
       return;
@@ -137,7 +159,8 @@ export function setupMiddleware(app: Application): void {
       requestId: (req.headers['x-request-id'] as string) || uuidv4(),
       mcpSessionId: (req.headers['mcp-session-id'] as string) || '',
       mcpProtocolVersion:
-        (req.headers['mcp-protocol-version'] as string) || FALLBACK_MCP_VERSION,
+        (req.headers['mcp-protocol-version'] as string) ||
+        DEFAULT_NEGOTIATED_PROTOCOL_VERSION,
       ipAddress: getIPAddress(req),
       userAgent: req.headers['user-agent'] ?? '',
       requestStartTime,

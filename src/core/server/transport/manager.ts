@@ -6,6 +6,7 @@ import type express from 'express';
 import { z } from 'zod';
 
 import { config } from '@/config/manager';
+import { MCPEventStore } from '@/core/storage/eventStore';
 import { createStorage } from '@/core/storage/storageFactory';
 import { type Storage } from '@/core/storage/types';
 
@@ -36,6 +37,9 @@ export class TransportManager {
   // Storage for session data to keep track of the initial request.
   private storage: Storage;
 
+  // Event store for SSE resumability support (MCP 2025-06-18)
+  private eventStore: MCPEventStore;
+
   // Map of sessionId to transport in this server memory.
   private transports: Map<string, StreamableHTTPServerTransport> = new Map();
 
@@ -47,6 +51,11 @@ export class TransportManager {
 
     try {
       this.storage = createStorage(config.storage);
+      // Initialize event store with session TTL for resumability
+      this.eventStore = new MCPEventStore(
+        this.storage,
+        config.storage.sessionTTL
+      );
     } catch (error: unknown) {
       loggingContext.log('error', 'Failed to create storage', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -218,12 +227,13 @@ export class TransportManager {
        * Default is false (SSE streams are preferred).
        */
       enableJsonResponse: false,
+
       /**
-       * TODO: Make custom event store for persistent storage.
-       * Event store for resumability support
-       * If provided, resumability will be enabled, allowing clients to reconnect and resume messages
+       * Event store for resumability support (MCP 2025-06-18).
+       * Enables clients to reconnect and resume receiving events using Last-Event-ID header.
+       * @see https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#resumability-and-redelivery
        */
-      // eventStore?: EventStore;
+      eventStore: this.eventStore,
     });
 
     loggingContext.log('debug', 'Creating transport', {
