@@ -36,6 +36,30 @@ export interface StructuredContent {
 }
 
 /**
+ * Content annotations for tool results per MCP 2025-06-18 specification.
+ * Provides metadata about audience, priority, and modification times.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-06-18/server/tools#tool-result
+ */
+export interface ContentAnnotations {
+  /** Hints whether content is for the user, assistant, or both */
+  audience?: ('user' | 'assistant')[];
+  /** Relative importance (0.0 to 1.0) */
+  priority?: number;
+  /** ISO 8601 timestamp when the data was last modified */
+  lastModified?: string;
+}
+
+/**
+ * Zod schema for content annotations validation
+ */
+export const ContentAnnotationsSchema = z.object({
+  audience: z.array(z.enum(['user', 'assistant'])).optional(),
+  priority: z.number().min(0).max(1).optional(),
+  lastModified: z.string().optional(),
+});
+
+/**
  * Tool result schema with structured output support
  */
 export const ToolResultSchema = z.object({
@@ -45,6 +69,8 @@ export const ToolResultSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
   executionTime: z.number().optional(),
   timestamp: z.string().optional(),
+  /** Optional annotations for the content (MCP 2025-06-18) */
+  annotations: ContentAnnotationsSchema.optional(),
   structuredContent: z
     .object({
       type: z.literal('structured'),
@@ -72,9 +98,13 @@ export const ToolInputSchema = ToolSchema.shape.inputSchema;
 
 /**
  * Tool definition interface
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-06-18/server/tools
  */
 export interface ToolDefinition {
   name: string;
+  /** Human-readable display name for the tool (new in MCP 2025-06-18) */
+  title?: string;
   description: string;
   inputSchema: typeof ToolInputSchema;
   examples?: Array<{
@@ -121,6 +151,11 @@ export class ToolBuilder<TInput = Record<string, unknown>, TOutput = unknown> {
 
   public description(desc: string): this {
     this.toolDefinition.description = desc;
+    return this;
+  }
+
+  public title(title: string): this {
+    this.toolDefinition.title = title;
     return this;
   }
 

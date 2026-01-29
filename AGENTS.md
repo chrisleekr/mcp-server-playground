@@ -14,7 +14,7 @@ This document provides essential guidelines for AI models interacting with this 
     - `/server/http/`: Express.js HTTP transport with middleware
     - `/server/auth/`: OAuth proxy with dynamic client registration
     - `/server/transport/`: Session management and transport handling
-    - `/storage/`: Pluggable storage abstraction (Memory/Valkey)
+    - `/storage/`: Pluggable storage abstraction (Memory/Valkey) with EventStore for SSE resumability
   - `/tools`: MCP tool implementations with streaming support
   - `/prompts`: MCP prompt handlers and registry
   - `/libraries`: External service integrations (AWS SDK)
@@ -83,6 +83,7 @@ const myTool = new ToolBuilder<MyInput, MyOutput>('tool-name')
 
 - Stateful sessions using Valkey for clustering support
 - Session replay mechanism for distributed deployments
+- SSE resumability with EventStore for client reconnection via `Last-Event-ID` header
 - Proper transport lifecycle management
 
 ## Testing
@@ -114,6 +115,9 @@ const myTool = new ToolBuilder<MyInput, MyOutput>('tool-name')
 ## Security & Best Practices
 
 - **Authentication**: OAuth 2.0 flow with Auth0 provider, JWT tokens with configurable TTL
+- **Origin Validation**: Strict Origin header validation on MCP endpoints to prevent DNS rebinding attacks
+- **Authorization Discovery**: WWW-Authenticate header on 401 responses with resource metadata URL per RFC 9728
+- **RFC Compliance**: RFC 8707 Resource Indicators for audience validation, RFC 7519 JWT aud array support
 - **Environment Variables**: NEVER commit secrets; use `.env` files for local development
 - **Input Validation**: Use Zod schemas for all input validation and type safety
 - **Security Headers**: Helmet middleware and rate limiting enabled

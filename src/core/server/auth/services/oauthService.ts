@@ -345,9 +345,7 @@ export class OAuthService {
     refreshToken: string;
   } {
     // Use the resource parameter if provided (RFC 8707 Resource Indicators)
-    // This is not working yet as of 2025-07-05.
-    // const audience = args.resource ?? config.server.auth.auth0.audience;
-    const audience = config.server.auth.auth0.audience;
+    const audience = args.resource ?? config.server.auth.auth0.audience;
 
     const accessToken = this.jwtService.generateAccessToken({
       clientId: args.client_id,
@@ -495,9 +493,7 @@ export class OAuthService {
     }
 
     // Use the resource parameter if provided (RFC 8707 Resource Indicators)
-    // This is not working yet as of 2025-07-05.
-    // const audience = args.resource ?? config.server.auth.auth0.audience;
-    const audience = config.server.auth.auth0.audience;
+    const audience = args.resource ?? config.server.auth.auth0.audience;
 
     const accessToken = this.jwtService.generateAccessToken({
       clientId: args.client_id,
@@ -570,17 +566,20 @@ export class OAuthService {
       }
 
       // Validate audience if provided (RFC 8707 Resource Indicators)
-      // This is not working yet as of 2025-07-05.
-      // if (expectedAudience !== undefined && claims.aud !== expectedAudience) {
-      //   loggingContext.log('warn', 'Token audience validation failed', {
-      //     data: {
-      //       expectedAudience,
-      //       actualAudience: claims.aud,
-      //       clientId: claims.client_id,
-      //     },
-      //   });
-      //   return { valid: false, claims: null, tokenRecord: null };
-      // }
+      // Per RFC 7519 Section 4.1.3, aud can be a string or array of strings
+      if (expectedAudience !== undefined) {
+        const audArray = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
+        if (!audArray.includes(expectedAudience)) {
+          loggingContext.log('warn', 'Token audience validation failed', {
+            data: {
+              expectedAudience,
+              actualAudience: claims.aud,
+              clientId: claims.client_id,
+            },
+          });
+          return { valid: false, claims: null, tokenRecord: null };
+        }
+      }
 
       const tokenRecord = await this.storageService.getToken(token);
 

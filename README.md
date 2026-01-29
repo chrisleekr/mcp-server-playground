@@ -4,10 +4,13 @@ A playground for Model Context Protocol (MCP) server built with TypeScript and S
 
 ## Features
 
-- MCP Server implementation: HTTP-Based Streamable transport using `@modelcontextprotocol/sdk` with HTTP transport, session management, and tool execution.
-- OAuth authentication/3rd party authorization: Implements an OAuth server for MCP clients to process 3rd party authorization servers like Auth0, providing Dynamic Application Registration for MCP server.
-- Storage: Provide storage for MCP server to store data like OAuth sessions, tokens, etc.
-- Session Management: Support stateful sessions by using replay of initial request.
+- **MCP 2025-06-18 Compliant**: Full compliance with the latest MCP specification including SSE resumability, tool annotations, and structured content.
+- **MCP Server implementation**: HTTP-Based Streamable transport using `@modelcontextprotocol/sdk` with HTTP transport, session management, and tool execution.
+- **SSE Resumability**: Clients can reconnect with `Last-Event-ID` header to resume receiving events after connection breaks, powered by EventStore.
+- **OAuth authentication/3rd party authorization**: Implements an OAuth server for MCP clients with RFC 8707 Resource Indicators and RFC 9728 authorization discovery, delegating to Auth0.
+- **Storage**: Pluggable storage abstraction (Memory/Valkey) with EventStore for SSE event persistence and replay.
+- **Session Management**: Support stateful sessions by using replay of initial request for distributed deployments.
+- **Security**: Strict Origin validation to prevent DNS rebinding attacks, WWW-Authenticate headers for authorization discovery.
 - Tools:
   - `aws-ecs`: Investigate the ECS service, task and cloudwatch logs using AWS ECS, Cloudwatch Logs and Bedrock
   - `aws-s3`: Get the list of S3 buckets and objects

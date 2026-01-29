@@ -10,20 +10,70 @@ import { type ToolContext } from '@/tools/types';
 
 import { loggingContext } from '../http/context';
 
+/**
+ * Builds the CallToolResult response from a tool execution result.
+ * Supports structuredContent and annotations per MCP 2025-06-18 spec.
+ */
+function buildToolResponse(finalResult: {
+  success: boolean;
+  structuredContent?: { content: unknown };
+  annotations?: {
+    audience?: ('user' | 'assistant')[];
+    priority?: number;
+    lastModified?: string;
+  };
+  [key: string]: unknown;
+}): CallToolResult {
+  const textContent: {
+    type: 'text';
+    text: string;
+    annotations?: {
+      audience?: ('user' | 'assistant')[];
+      priority?: number;
+      lastModified?: string;
+    };
+  } = {
+    type: 'text',
+    text: JSON.stringify(finalResult.structuredContent?.content ?? finalResult),
+  };
+
+  if (finalResult.annotations !== undefined) {
+    textContent.annotations = finalResult.annotations;
+  }
+
+  const response: CallToolResult = {
+    content: [textContent],
+  };
+
+  if (finalResult.structuredContent !== undefined) {
+    response.structuredContent = finalResult.structuredContent
+      .content as Record<string, unknown>;
+  }
+
+  // Set isError for tool-level failures per MCP 2025-06-18 spec
+  if (finalResult.success === false) {
+    response.isError = true;
+  }
+
+  return response;
+}
+
 export function setupToolHandlers(toolContext: ToolContext): void {
   const server = toolContext.server;
   if (!server) {
     throw new Error('Server not found');
   }
 
-  // List available tools
+  // List available tools (MCP 2025-06-18 spec compliant)
   server.setRequestHandler(ListToolsRequestSchema, () => {
     const tools = toolLoader.getToolDefinitions();
     return Promise.resolve({
       tools: tools.map(tool => ({
         name: tool.name,
+        title: tool.title,
         description: tool.description,
         inputSchema: tool.inputSchema,
+        outputSchema: tool.outputSchema,
       })),
     });
   });
@@ -88,14 +138,7 @@ async function handleToolCall(
       error: 'No results generated',
     };
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(finalResult),
-        },
-      ],
-    };
+    return buildToolResponse(finalResult);
   } catch (error: unknown) {
     loggingContext.log('error', 'Tool call failed', {
       data: {

@@ -8,6 +8,7 @@ This document provides an overview of the MCP Server Playground architecture, in
 - [OAuth Authorization Flow](#oauth-authorization-flow)
 - [Request Processing Flow](#request-processing-flow)
 - [Storage Abstraction](#storage-abstraction)
+- [SSE Resumability](#sse-resumability)
 - [Stateful Session Management](#stateful-session-management)
 
 ---
@@ -130,13 +131,13 @@ flowchart LR
 
 ### Middleware Components
 
-| Middleware            | Purpose                                              |
-| --------------------- | ---------------------------------------------------- |
-| **Helmet**            | Security headers (CSP, XSS protection, etc.)         |
-| **Rate Limiter**      | 100 requests per minute per IP                       |
-| **CORS**              | Cross-origin request handling                        |
-| **MCP Version Check** | Protocol version validation (2025-06-18, 2025-03-26) |
-| **Logging Context**   | Request correlation and structured logging           |
+| Middleware            | Purpose                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Helmet**            | Security headers (CSP, XSS protection, etc.)                                                                  |
+| **Rate Limiter**      | 100 requests per minute per IP                                                                                |
+| **CORS/Origin**       | Cross-origin request handling with strict Origin validation on MCP endpoints to prevent DNS rebinding attacks |
+| **MCP Version Check** | Protocol version validation (2025-06-18, 2025-03-26)                                                          |
+| **Logging Context**   | Request correlation and structured logging                                                                    |
 
 ---
 
@@ -153,18 +154,26 @@ classDiagram
         +delete(key) Promise~boolean~
         +keys(pattern) Promise~string[]~
         +close() Promise~void~
+        +length() Promise~number~
+        +appendToList(key, value, ttl) Promise~number~
+        +getList(key) Promise~string[]~
     }
 
     class MemoryStorage {
         -store: Map
+        -listStore: Map
         +get(key)
         +set(key, value, ttl)
+        +appendToList(key, value, ttl)
+        +getList(key)
     }
 
     class ValkeyStorage {
         -client: IOValkey
         +get(key)
         +set(key, value, ttl)
+        +appendToList(key, value, ttl)
+        +getList(key)
     }
 
     Storage <|.. MemoryStorage
@@ -178,6 +187,57 @@ classDiagram
 | `MCP_CONFIG_STORAGE_TYPE`        | `memory` | Storage backend: `memory` or `valkey` |
 | `MCP_CONFIG_STORAGE_VALKEY_URL`  | -        | Valkey/Redis connection URL           |
 | `MCP_CONFIG_STORAGE_SESSION_TTL` | `3600`   | Session TTL in seconds                |
+
+---
+
+## SSE Resumability
+
+The server implements SSE resumability per [MCP 2025-06-18 specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#resumability-and-redelivery), allowing clients to reconnect and resume receiving events using the `Last-Event-ID` header. This is powered by the `MCPEventStore` component.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant EventStore
+    participant Storage
+
+    rect rgb(240, 248, 255)
+        Note over Client,Storage: Normal SSE Event Flow
+        Client->>Server: POST /mcp
+        Server->>EventStore: storeEvent(streamId, message)
+        EventStore->>Storage: set(mcp-event:eventId)
+        EventStore->>Storage: appendToList(mcp-stream-events:streamId)
+        Server-->>Client: SSE event with id: eventId
+    end
+
+    rect rgb(255, 240, 245)
+        Note over Client,Storage: Connection Breaks and Reconnects
+        Client->>Server: GET /mcp with Last-Event-ID header
+        Server->>EventStore: replayEventsAfter(lastEventId)
+        EventStore->>Storage: get(mcp-event:lastEventId)
+        EventStore->>Storage: getList(mcp-stream-events:streamId)
+        EventStore->>Storage: get(missed events)
+        EventStore-->>Server: Array of missed events
+        Server-->>Client: SSE replay of missed events
+    end
+```
+
+### EventStore Storage Keys
+
+| Key Pattern                    | Description                                     |
+| ------------------------------ | ----------------------------------------------- |
+| `mcp-event:{eventId}`          | Individual event data stored as JSON            |
+| `mcp-stream-events:{streamId}` | Ordered list of event IDs for a specific stream |
+
+### How It Works
+
+1. **Event Storage**: When the server sends an SSE event, it stores the event data and appends the event ID to the stream's index list using atomic operations.
+
+2. **Client Reconnection**: When a client reconnects with a `Last-Event-ID` header, the server looks up which stream the event belongs to.
+
+3. **Event Replay**: The server retrieves all event IDs from the stream index that come after the last received event and replays them to the client.
+
+4. **TTL Management**: Events expire automatically based on the configured session TTL (default: 1 hour) to prevent unbounded storage growth.
 
 ---
 
