@@ -84,7 +84,16 @@ export class ValkeyStorage implements Storage {
     }
     const results = await pipeline.exec();
 
-    // Pipeline returns array of [error, result] tuples; first result is RPUSH length
+    // Pipeline returns array of [error, result] tuples; first result is RPUSH length.
+    // Edge case: pipeline.exec() may return null/undefined if the connection is interrupted
+    // mid-execution or Redis returns an unexpected response. In this scenario:
+    // - We log a warning for observability (should trigger alerts in production)
+    // - Return 0 to signal "no items appended" rather than throwing, allowing the
+    //   EventStore to continue operation. The event will still be stored individually;
+    //   only the stream index may be incomplete, which is recoverable on retry.
+    // - Throwing here would cause the entire storeEvent to fail, potentially losing
+    //   the event entirely, which is worse than a partially incomplete index.
+    // Note: results?.[0] handles both null results and missing first element via optional chaining.
     if (results?.[0] === undefined) {
       loggingContext.log('warn', 'Pipeline execution returned no results', {
         data: { key },
