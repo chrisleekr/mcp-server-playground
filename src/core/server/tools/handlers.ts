@@ -50,6 +50,11 @@ function buildToolResponse(finalResult: {
       .content as Record<string, unknown>;
   }
 
+  // Set isError for tool-level failures per MCP 2025-06-18 spec
+  if (finalResult.success === false) {
+    response.isError = true;
+  }
+
   return response;
 }
 

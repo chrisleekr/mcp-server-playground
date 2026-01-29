@@ -190,10 +190,15 @@ export interface JWTServiceRefreshTokenArgs {
   expiresIn: string;
 }
 
+/**
+ * JWT Claims interface per RFC 7519.
+ * The aud claim can be a string or array of strings per Section 4.1.3.
+ */
 export interface JWTClaims {
   iss: string;
   sub: string;
-  aud: string;
+  /** Audience claim - can be string or array per RFC 7519 Section 4.1.3 */
+  aud: string | string[];
   exp: number;
   iat: number;
   type?: string;
