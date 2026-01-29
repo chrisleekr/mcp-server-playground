@@ -81,7 +81,7 @@ export class ValkeyStorage implements Storage {
     const results = await pipeline.exec();
 
     // Pipeline returns array of [error, result] tuples; first result is RPUSH length
-    if (results === null || results[0] === undefined) {
+    if (results?.[0] === undefined) {
       loggingContext.log('warn', 'Pipeline execution returned no results', {
         data: { key },
       });
