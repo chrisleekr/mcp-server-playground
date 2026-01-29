@@ -568,9 +568,7 @@ export class OAuthService {
       // Validate audience if provided (RFC 8707 Resource Indicators)
       // Per RFC 7519 Section 4.1.3, aud can be a string or array of strings
       if (expectedAudience !== undefined) {
-        const audArray = Array.isArray(claims.aud)
-          ? claims.aud
-          : [claims.aud];
+        const audArray = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
         if (!audArray.includes(expectedAudience)) {
           loggingContext.log('warn', 'Token audience validation failed', {
             data: {

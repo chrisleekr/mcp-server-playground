@@ -72,7 +72,11 @@ export class ValkeyStorage implements Storage {
    * @see https://redis.io/docs/latest/commands/rpush/
    * @see https://redis.io/docs/latest/develop/use/pipelining/
    */
-  async appendToList(key: string, value: string, ttl?: number): Promise<number> {
+  async appendToList(
+    key: string,
+    value: string,
+    ttl?: number
+  ): Promise<number> {
     const pipeline = this.client.pipeline();
     pipeline.rpush(key, value);
     if (ttl !== undefined) {

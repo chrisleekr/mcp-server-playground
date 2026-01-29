@@ -104,7 +104,11 @@ export class MemoryStorage implements Storage {
     return count;
   }
 
-  async appendToList(key: string, value: string, ttl?: number): Promise<number> {
+  async appendToList(
+    key: string,
+    value: string,
+    ttl?: number
+  ): Promise<number> {
     this.operationCount++;
     if (this.operationCount >= CLEANUP_THRESHOLD) {
       this.cleanupExpired();

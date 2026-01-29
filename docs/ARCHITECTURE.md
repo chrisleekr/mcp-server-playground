@@ -131,13 +131,13 @@ flowchart LR
 
 ### Middleware Components
 
-| Middleware            | Purpose                                                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------- |
-| **Helmet**            | Security headers (CSP, XSS protection, etc.)                                                      |
-| **Rate Limiter**      | 100 requests per minute per IP                                                                    |
+| Middleware            | Purpose                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Helmet**            | Security headers (CSP, XSS protection, etc.)                                                                  |
+| **Rate Limiter**      | 100 requests per minute per IP                                                                                |
 | **CORS/Origin**       | Cross-origin request handling with strict Origin validation on MCP endpoints to prevent DNS rebinding attacks |
-| **MCP Version Check** | Protocol version validation (2025-06-18, 2025-03-26)                                              |
-| **Logging Context**   | Request correlation and structured logging                                                        |
+| **MCP Version Check** | Protocol version validation (2025-06-18, 2025-03-26)                                                          |
+| **Logging Context**   | Request correlation and structured logging                                                                    |
 
 ---
 
@@ -224,10 +224,10 @@ sequenceDiagram
 
 ### EventStore Storage Keys
 
-| Key Pattern                       | Description                                    |
-| --------------------------------- | ---------------------------------------------- |
-| `mcp-event:{eventId}`             | Individual event data stored as JSON           |
-| `mcp-stream-events:{streamId}`    | Ordered list of event IDs for a specific stream |
+| Key Pattern                    | Description                                     |
+| ------------------------------ | ----------------------------------------------- |
+| `mcp-event:{eventId}`          | Individual event data stored as JSON            |
+| `mcp-stream-events:{streamId}` | Ordered list of event IDs for a specific stream |
 
 ### How It Works
 
