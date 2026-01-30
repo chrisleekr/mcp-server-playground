@@ -146,17 +146,32 @@ export const AudioContentSchema = z.object({
 });
 
 /**
- * Zod schema for embedded resource validation
+ * Zod schema for text resource contents (MCP 2025-06-18)
+ */
+const TextResourceContentsSchema = z.object({
+  uri: z.string(),
+  mimeType: z.string().optional(),
+  text: z.string(),
+  annotations: ContentAnnotationsSchema.optional(),
+});
+
+/**
+ * Zod schema for blob resource contents (MCP 2025-06-18)
+ */
+const BlobResourceContentsSchema = z.object({
+  uri: z.string(),
+  mimeType: z.string().optional(),
+  blob: z.string(),
+  annotations: ContentAnnotationsSchema.optional(),
+});
+
+/**
+ * Zod schema for embedded resource validation.
+ * Per MCP spec, resource must have exactly one of text or blob (XOR).
  */
 export const EmbeddedResourceSchema = z.object({
   type: z.literal('resource'),
-  resource: z.object({
-    uri: z.string(),
-    mimeType: z.string().optional(),
-    text: z.string().optional(),
-    blob: z.string().optional(),
-    annotations: ContentAnnotationsSchema.optional(),
-  }),
+  resource: z.union([TextResourceContentsSchema, BlobResourceContentsSchema]),
 });
 
 /**
