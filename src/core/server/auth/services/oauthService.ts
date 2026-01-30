@@ -102,7 +102,12 @@ export class OAuthService {
         const registeredURL = new URL(registered);
 
         if (this.isLoopbackURI(requestURI) && this.isLoopbackURI(registered)) {
-          // RFC 8252: For loopback, match scheme + host + path (ignore port)
+          // RFC 8252 Section 7.3: Loopback Interface Redirection
+          // Development tools (e.g., MCP Inspector) use ephemeral ports that change
+          // each run. The spec explicitly allows ignoring ports for loopback URIs:
+          // "authorization servers SHOULD allow any port to be specified at the
+          // time of the request for loopback IP redirect URIs"
+          // We match: scheme + host + path (port is intentionally ignored)
           if (
             requested.protocol === registeredURL.protocol &&
             requested.hostname.toLowerCase() ===
@@ -112,7 +117,11 @@ export class OAuthService {
             return true;
           }
         } else {
-          // Non-loopback: exact match required per MCP spec
+          // MCP Specification: Open Redirection Prevention
+          // For non-loopback (production) URIs, exact match is required to prevent
+          // open redirection attacks. Authorization servers "MUST validate exact
+          // redirect URIs against pre-registered values"
+          // @see https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#open-redirection
           if (requestURI === registered) {
             return true;
           }
