@@ -53,6 +53,14 @@ export class OAuthService {
   }
 
   /**
+   * Normalizes audience URL by removing trailing slashes for consistent comparison.
+   * This ensures "http://example.com/" and "http://example.com" are treated as equivalent.
+   */
+  private normalizeAudience(audience: string): string {
+    return audience.replace(/\/+$/, '');
+  }
+
+  /**
    * Returns OAuth 2.0 Authorization Server Metadata (RFC 8414).
    *
    * Used by clients to discover OAuth endpoints and capabilities.
@@ -162,6 +170,20 @@ export class OAuthService {
       client = await this.storageService.getClient(
         registerClientResponse.client_id
       );
+    } else if (!client.redirectUris.includes(args.redirect_uri)) {
+      loggingContext.log(
+        'debug',
+        'Adding new redirect URI to existing client',
+        {
+          data: {
+            clientId: client.clientId,
+            newRedirectUri: args.redirect_uri,
+            existingRedirectUris: client.redirectUris,
+          },
+        }
+      );
+      client.redirectUris.push(args.redirect_uri);
+      await this.storageService.registerClient(client);
     }
 
     return client;
@@ -345,7 +367,10 @@ export class OAuthService {
     refreshToken: string;
   } {
     // Use the resource parameter if provided (RFC 8707 Resource Indicators)
-    const audience = args.resource ?? config.server.auth.auth0.audience;
+    // Normalize to remove trailing slashes for consistent audience matching
+    const audience = this.normalizeAudience(
+      args.resource ?? config.server.auth.auth0.audience
+    );
 
     const accessToken = this.jwtService.generateAccessToken({
       clientId: args.client_id,
@@ -493,7 +518,10 @@ export class OAuthService {
     }
 
     // Use the resource parameter if provided (RFC 8707 Resource Indicators)
-    const audience = args.resource ?? config.server.auth.auth0.audience;
+    // Normalize to remove trailing slashes for consistent audience matching
+    const audience = this.normalizeAudience(
+      args.resource ?? config.server.auth.auth0.audience
+    );
 
     const accessToken = this.jwtService.generateAccessToken({
       clientId: args.client_id,
@@ -567,13 +595,18 @@ export class OAuthService {
 
       // Validate audience if provided (RFC 8707 Resource Indicators)
       // Per RFC 7519 Section 4.1.3, aud can be a string or array of strings
+      // Normalize URLs to handle trailing slash differences
       if (expectedAudience !== undefined) {
+        const normalizedExpected = this.normalizeAudience(expectedAudience);
         const audArray = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-        if (!audArray.includes(expectedAudience)) {
+        const normalizedAudArray = audArray.map(aud =>
+          this.normalizeAudience(aud)
+        );
+        if (!normalizedAudArray.includes(normalizedExpected)) {
           loggingContext.log('warn', 'Token audience validation failed', {
             data: {
-              expectedAudience,
-              actualAudience: claims.aud,
+              expectedAudience: normalizedExpected,
+              actualAudience: normalizedAudArray,
               clientId: claims.client_id,
             },
           });

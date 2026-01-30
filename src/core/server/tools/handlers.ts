@@ -1,38 +1,111 @@
 import {
+  type AudioContent as MCPAudioContent,
   type CallToolRequest,
   CallToolRequestSchema,
   type CallToolResult,
+  type EmbeddedResource as MCPEmbeddedResource,
+  type ImageContent as MCPImageContent,
+  type ListToolsRequest,
   ListToolsRequestSchema,
+  type ResourceLink as MCPResourceLink,
+  type TextContent as MCPTextContent,
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { toolLoader } from '@/tools/loader';
-import { type ToolContext } from '@/tools/types';
+import {
+  type AudioContent,
+  type ContentAnnotations,
+  type EmbeddedResource,
+  type ImageContent,
+  type ResourceLink,
+  type ToolContext,
+} from '@/tools/types';
 
+import { DEFAULT_PAGE_SIZE } from '../constants';
 import { loggingContext } from '../http/context';
+
+type ContentItem =
+  | MCPTextContent
+  | MCPImageContent
+  | MCPAudioContent
+  | MCPResourceLink
+  | MCPEmbeddedResource;
+
+interface ToolExecutionResult {
+  success: boolean;
+  structuredContent?: { content: unknown };
+  annotations?: ContentAnnotations;
+  imageContent?: ImageContent[];
+  audioContent?: AudioContent[];
+  resourceLinks?: ResourceLink[];
+  embeddedResources?: EmbeddedResource[];
+  [key: string]: unknown;
+}
+
+function buildImageContent(images: ImageContent[]): MCPImageContent[] {
+  return images.map(img => {
+    const item: MCPImageContent = {
+      type: 'image',
+      data: img.data,
+      mimeType: img.mimeType,
+    };
+    if (img.annotations !== undefined) {
+      item.annotations = img.annotations;
+    }
+    return item;
+  });
+}
+
+function buildAudioContent(audios: AudioContent[]): MCPAudioContent[] {
+  return audios.map(audio => {
+    const item: MCPAudioContent = {
+      type: 'audio',
+      data: audio.data,
+      mimeType: audio.mimeType,
+    };
+    if (audio.annotations !== undefined) {
+      item.annotations = audio.annotations;
+    }
+    return item;
+  });
+}
+
+function buildResourceLinks(links: ResourceLink[]): MCPResourceLink[] {
+  return links.map(link => {
+    const item: MCPResourceLink = {
+      type: 'resource_link',
+      uri: link.uri,
+      name: link.name ?? link.uri,
+    };
+    if (link.description !== undefined) {
+      item.description = link.description;
+    }
+    if (link.mimeType !== undefined) {
+      item.mimeType = link.mimeType;
+    }
+    if (link.annotations !== undefined) {
+      item.annotations = link.annotations;
+    }
+    return item;
+  });
+}
+
+function buildEmbeddedResources(
+  resources: EmbeddedResource[]
+): MCPEmbeddedResource[] {
+  return resources.map(
+    embedded =>
+      ({ type: 'resource', resource: embedded.resource }) as MCPEmbeddedResource
+  );
+}
 
 /**
  * Builds the CallToolResult response from a tool execution result.
- * Supports structuredContent and annotations per MCP 2025-06-18 spec.
+ * Supports text, image, audio, resource links, embedded resources,
+ * and structuredContent per MCP 2025-06-18 spec.
  */
-function buildToolResponse(finalResult: {
-  success: boolean;
-  structuredContent?: { content: unknown };
-  annotations?: {
-    audience?: ('user' | 'assistant')[];
-    priority?: number;
-    lastModified?: string;
-  };
-  [key: string]: unknown;
-}): CallToolResult {
-  const textContent: {
-    type: 'text';
-    text: string;
-    annotations?: {
-      audience?: ('user' | 'assistant')[];
-      priority?: number;
-      lastModified?: string;
-    };
-  } = {
+function buildToolResponse(finalResult: ToolExecutionResult): CallToolResult {
+  const textContent: MCPTextContent = {
     type: 'text',
     text: JSON.stringify(finalResult.structuredContent?.content ?? finalResult),
   };
@@ -41,16 +114,31 @@ function buildToolResponse(finalResult: {
     textContent.annotations = finalResult.annotations;
   }
 
-  const response: CallToolResult = {
-    content: [textContent],
-  };
+  const content: ContentItem[] = [textContent];
+
+  if (finalResult.imageContent !== undefined) {
+    content.push(...buildImageContent(finalResult.imageContent));
+  }
+
+  if (finalResult.audioContent !== undefined) {
+    content.push(...buildAudioContent(finalResult.audioContent));
+  }
+
+  if (finalResult.resourceLinks !== undefined) {
+    content.push(...buildResourceLinks(finalResult.resourceLinks));
+  }
+
+  if (finalResult.embeddedResources !== undefined) {
+    content.push(...buildEmbeddedResources(finalResult.embeddedResources));
+  }
+
+  const response: CallToolResult = { content };
 
   if (finalResult.structuredContent !== undefined) {
     response.structuredContent = finalResult.structuredContent
       .content as Record<string, unknown>;
   }
 
-  // Set isError for tool-level failures per MCP 2025-06-18 spec
   if (finalResult.success === false) {
     response.isError = true;
   }
@@ -64,19 +152,52 @@ export function setupToolHandlers(toolContext: ToolContext): void {
     throw new Error('Server not found');
   }
 
-  // List available tools (MCP 2025-06-18 spec compliant)
-  server.setRequestHandler(ListToolsRequestSchema, () => {
-    const tools = toolLoader.getToolDefinitions();
-    return Promise.resolve({
-      tools: tools.map(tool => ({
-        name: tool.name,
-        title: tool.title,
-        description: tool.description,
-        inputSchema: tool.inputSchema,
-        outputSchema: tool.outputSchema,
-      })),
-    });
-  });
+  // List available tools with pagination support (MCP 2025-06-18 spec compliant)
+  server.setRequestHandler(
+    ListToolsRequestSchema,
+    (request: ListToolsRequest) => {
+      const allTools = toolLoader.getToolDefinitions();
+      const cursor = request.params?.cursor;
+
+      // Parse cursor to get offset (cursor is base64 encoded offset)
+      let offset = 0;
+      if (cursor !== undefined) {
+        try {
+          offset = parseInt(
+            Buffer.from(cursor, 'base64').toString('utf-8'),
+            10
+          );
+          if (isNaN(offset) || offset < 0) {
+            offset = 0;
+          }
+        } catch {
+          offset = 0;
+        }
+      }
+
+      // Get page of tools
+      const pageSize = DEFAULT_PAGE_SIZE;
+      const paginatedTools = allTools.slice(offset, offset + pageSize);
+      const hasMore = offset + pageSize < allTools.length;
+
+      // Create next cursor if there are more items
+      const nextCursor = hasMore
+        ? Buffer.from((offset + pageSize).toString()).toString('base64')
+        : undefined;
+
+      return Promise.resolve({
+        tools: paginatedTools.map(tool => ({
+          name: tool.name,
+          title: tool.title,
+          description: tool.description,
+          inputSchema: tool.inputSchema,
+          outputSchema: tool.outputSchema,
+          annotations: tool.annotations,
+        })),
+        nextCursor,
+      });
+    }
+  );
 
   // Handle tool execution
   server.setRequestHandler(

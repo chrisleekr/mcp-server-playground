@@ -18,6 +18,9 @@ A playground for Model Context Protocol (MCP) server built with TypeScript and S
   - `echo`: Echo a message back with transformations, repetition
   - `streaming`: Simulate real-time streaming data with live updates
   - `project`: Find keywords in the current project directory
+- Resources:
+  - `echo://documentation`: Documentation for the echo tool (static resource)
+  - `echo://result/{resultId}`: Access echo operation results (resource template)
 - Prompts: `echo`
 
 ## Documentation
@@ -31,6 +34,7 @@ A playground for Model Context Protocol (MCP) server built with TypeScript and S
   - [project](src/tools/project/README.md) - Keyword search in project files
   - [aws-ecs](src/tools/aws/ecs/README.md) - ECS investigation with AI analysis
   - [aws-s3](src/tools/aws/s3/README.md) - S3 bucket and object listing
+- **Resource Documentation**: [src/resources/README.md](src/resources/README.md) - MCP resources overview
 
 ## Why this project exists?
 

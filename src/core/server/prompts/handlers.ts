@@ -2,6 +2,7 @@ import {
   type GetPromptRequest,
   GetPromptRequestSchema,
   type GetPromptResult,
+  type ListPromptsRequest,
   ListPromptsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
@@ -9,24 +10,57 @@ import { loggingContext } from '@/core/server';
 import { promptLoader } from '@/prompts/loader';
 import { type PromptContext } from '@/prompts/types';
 
+import { DEFAULT_PAGE_SIZE } from '../constants';
+
 export function setupPromptsHandlers(promptContext: PromptContext): void {
   const server = promptContext.server;
   if (!server) {
     throw new Error('Server not found');
   }
 
-  // List available prompts
-  server.setRequestHandler(ListPromptsRequestSchema, () => {
-    const prompts = promptLoader.getPromptDefinitions();
+  // List available prompts with pagination support (MCP 2025-06-18 spec compliant)
+  server.setRequestHandler(
+    ListPromptsRequestSchema,
+    (request: ListPromptsRequest) => {
+      const allPrompts = promptLoader.getPromptDefinitions();
+      const cursor = request.params?.cursor;
 
-    return Promise.resolve({
-      prompts: prompts.map(prompt => ({
-        name: prompt.name,
-        description: prompt.description,
-        arguments: prompt.arguments,
-      })),
-    });
-  });
+      // Parse cursor to get offset (cursor is base64 encoded offset)
+      let offset = 0;
+      if (cursor !== undefined) {
+        try {
+          offset = parseInt(
+            Buffer.from(cursor, 'base64').toString('utf-8'),
+            10
+          );
+          if (isNaN(offset) || offset < 0) {
+            offset = 0;
+          }
+        } catch {
+          offset = 0;
+        }
+      }
+
+      // Get page of prompts
+      const pageSize = DEFAULT_PAGE_SIZE;
+      const paginatedPrompts = allPrompts.slice(offset, offset + pageSize);
+      const hasMore = offset + pageSize < allPrompts.length;
+
+      // Create next cursor if there are more items
+      const nextCursor = hasMore
+        ? Buffer.from((offset + pageSize).toString()).toString('base64')
+        : undefined;
+
+      return Promise.resolve({
+        prompts: paginatedPrompts.map(prompt => ({
+          name: prompt.name,
+          description: prompt.description,
+          arguments: prompt.arguments,
+        })),
+        nextCursor,
+      });
+    }
+  );
 
   // Get prompt
   server.setRequestHandler(
