@@ -57,7 +57,11 @@ export class OAuthService {
    * This ensures "http://example.com/" and "http://example.com" are treated as equivalent.
    */
   private normalizeAudience(audience: string): string {
-    return audience.replace(/\/+$/, '');
+    let normalized = audience;
+    while (normalized.endsWith('/')) {
+      normalized = normalized.slice(0, -1);
+    }
+    return normalized;
   }
 
   /**
@@ -599,10 +603,13 @@ export class OAuthService {
       if (expectedAudience !== undefined) {
         const normalizedExpected = this.normalizeAudience(expectedAudience);
         const audArray = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-        const normalizedAudArray = audArray.map(aud =>
-          this.normalizeAudience(aud)
-        );
-        if (!normalizedAudArray.includes(normalizedExpected)) {
+        const normalizedAudArray = audArray
+          .filter((aud): aud is string => typeof aud === 'string' && aud !== '')
+          .map(aud => this.normalizeAudience(aud));
+        if (
+          normalizedAudArray.length === 0 ||
+          !normalizedAudArray.includes(normalizedExpected)
+        ) {
           loggingContext.log('warn', 'Token audience validation failed', {
             data: {
               expectedAudience: normalizedExpected,
