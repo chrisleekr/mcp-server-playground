@@ -156,7 +156,7 @@ export const OAuthServiceHandleTokenRequestSchema = z.object({
   redirect_uri: z.string().optional(),
   refresh_token: z.string().optional(),
   code_verifier: z.string().optional(),
-  resource: z.string().optional(),
+  resource: z.string().min(1).optional(),
 });
 
 export type OAuthServiceHandleTokenRequest = z.infer<

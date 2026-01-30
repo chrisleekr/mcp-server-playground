@@ -7,8 +7,10 @@ import { setupErrorHandling } from '@/core/server/errorHandling';
 import { setupHttpServer } from '@/core/server/http';
 import { loggingContext } from '@/core/server/http/context';
 import { loadPrompts, setupPromptsHandlers } from '@/core/server/prompts';
+import { loadResources, setupResourcesHandlers } from '@/core/server/resources';
 import { loadTools, setupToolHandlers } from '@/core/server/tools';
 import { type PromptContext } from '@/prompts/types';
+import { type ResourceContext } from '@/resources/types';
 import { type ToolContext } from '@/tools/types';
 
 /**
@@ -30,6 +32,7 @@ import { type ToolContext } from '@/tools/types';
 export class MCPServer {
   private server: Server;
   private promptContext: PromptContext;
+  private resourceContext: ResourceContext;
   private toolContext: ToolContext;
   private httpServer: express.Application | null = null;
   private nodeServer: http.Server | null = null;
@@ -45,25 +48,38 @@ export class MCPServer {
           prompts: {
             listChanged: true,
           },
+          resources: {
+            subscribe: false,
+            listChanged: true,
+          },
           logging: {
             level: 'debug',
           },
-          tools: {},
+          tools: {
+            listChanged: true,
+          },
         },
       }
     );
 
     this.promptContext = {
       server: this.server,
-      progressToken: '', // Placeholder for progress token
+      progressToken: '',
     };
     setupPromptsHandlers(this.promptContext);
     loadPrompts();
 
+    this.resourceContext = {
+      server: this.server,
+      progressToken: '',
+    };
+    setupResourcesHandlers(this.resourceContext);
+    loadResources();
+
     this.toolContext = {
       config: {},
       server: this.server,
-      progressToken: '', // Placeholder for progress token
+      progressToken: '',
     };
     setupToolHandlers(this.toolContext);
     loadTools();

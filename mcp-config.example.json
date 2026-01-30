@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "mcp-server-boilerplate-inspector": {
+      "type": "streamable-http",
+      "url": "http://0.0.0.0:3000/mcp"
+    },
     "mcp-server-boilerplate-cursor": {
       "type": "http",
       "url": "http://0.0.0.0:3000/mcp"
@@ -16,7 +20,7 @@
         "--debug"
       ],
       "env": {
-        "PATH": "~/.local/share/nvm/v22.17.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        "PATH": "~/.local/share/nvm/v25.5.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       }
     }
   }

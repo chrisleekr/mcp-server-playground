@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { type Application } from 'express';
+import { URL } from 'url';
 
 import { config } from '@/config/manager';
 import { loggingContext } from '@/core/server/http/context';
@@ -50,6 +51,87 @@ export class OAuthService {
     this.jwtService = new JWTService();
     this.storageService = new StorageService();
     this.auth0Provider = new Auth0Provider(this.storageService);
+  }
+
+  /**
+   * Normalizes audience URL by removing trailing slashes for consistent comparison.
+   * This ensures "http://example.com/" and "http://example.com" are treated as equivalent.
+   */
+  private normalizeAudience(audience: string): string {
+    let normalized = audience;
+    while (normalized.endsWith('/')) {
+      normalized = normalized.slice(0, -1);
+    }
+    return normalized;
+  }
+
+  /**
+   * Checks if a URI is a loopback address (localhost, 127.0.0.1, [::1]).
+   * Per RFC 8252 Section 7.3, loopback URIs get special port handling.
+   *
+   * @see {@link https://www.rfc-editor.org/rfc/rfc8252#section-7.3}
+   */
+  private isLoopbackURI(uri: string): boolean {
+    try {
+      const parsed = new URL(uri);
+      const host = parsed.hostname.toLowerCase();
+      return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Matches a redirect URI against registered URIs with RFC 8252 loopback port flexibility.
+   *
+   * For loopback URIs (localhost, 127.0.0.1, [::1]): matches if scheme, host, and path match
+   * (port is ignored per RFC 8252 Section 7.3).
+   * For non-loopback URIs: requires exact match per MCP specification.
+   *
+   * @see {@link https://www.rfc-editor.org/rfc/rfc8252#section-7.3}
+   * @see {@link https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#open-redirection}
+   */
+  private matchesRedirectURI(
+    requestURI: string,
+    registeredURIs: string[]
+  ): boolean {
+    try {
+      const requested = new URL(requestURI);
+
+      for (const registered of registeredURIs) {
+        const registeredURL = new URL(registered);
+
+        if (this.isLoopbackURI(requestURI) && this.isLoopbackURI(registered)) {
+          // RFC 8252 Section 7.3: Loopback Interface Redirection
+          // Development tools (e.g., MCP Inspector) use ephemeral ports that change
+          // each run. The spec explicitly allows ignoring ports for loopback URIs:
+          // "authorization servers SHOULD allow any port to be specified at the
+          // time of the request for loopback IP redirect URIs"
+          // We match: scheme + host + path (port is intentionally ignored)
+          if (
+            requested.protocol === registeredURL.protocol &&
+            requested.hostname.toLowerCase() ===
+              registeredURL.hostname.toLowerCase() &&
+            requested.pathname === registeredURL.pathname
+          ) {
+            return true;
+          }
+        } else {
+          // MCP Specification: Open Redirection Prevention
+          // For non-loopback (production) URIs, exact match is required to prevent
+          // open redirection attacks. Authorization servers "MUST validate exact
+          // redirect URIs against pre-registered values"
+          // @see https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#open-redirection
+          if (requestURI === registered) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -142,6 +224,7 @@ export class OAuthService {
   ): Promise<OAuthServiceClient | null> {
     let client = await this.storageService.getClient(args.client_id);
     if (!client) {
+      // Auto-register new client with the provided redirect_uri (valid DCR per RFC 7591)
       const registerClientResponse = await this.registerClient({
         client_id: args.client_id,
         client_secret: '',
@@ -163,6 +246,8 @@ export class OAuthService {
         registerClientResponse.client_id
       );
     }
+    // Redirect URI validation happens in validateAuthorizationClient
+    // with RFC 8252 loopback port flexibility
 
     return client;
   }
@@ -171,7 +256,18 @@ export class OAuthService {
     args: OAuthServiceHandleAuthorizationRequest,
     client: OAuthServiceClient | null
   ): void {
-    if (client && !client.redirectUris.includes(args.redirect_uri)) {
+    if (
+      client &&
+      !this.matchesRedirectURI(args.redirect_uri, client.redirectUris)
+    ) {
+      loggingContext.log('warn', 'Redirect URI validation failed', {
+        data: {
+          clientId: client.clientId,
+          requestedURI: args.redirect_uri,
+          registeredURIs: client.redirectUris,
+          isLoopback: this.isLoopbackURI(args.redirect_uri),
+        },
+      });
       throw new Error('Redirect URI not found');
     }
 
@@ -345,7 +441,10 @@ export class OAuthService {
     refreshToken: string;
   } {
     // Use the resource parameter if provided (RFC 8707 Resource Indicators)
-    const audience = args.resource ?? config.server.auth.auth0.audience;
+    // Normalize to remove trailing slashes for consistent audience matching
+    const audience = this.normalizeAudience(
+      args.resource ?? config.server.auth.auth0.audience
+    );
 
     const accessToken = this.jwtService.generateAccessToken({
       clientId: args.client_id,
@@ -493,7 +592,10 @@ export class OAuthService {
     }
 
     // Use the resource parameter if provided (RFC 8707 Resource Indicators)
-    const audience = args.resource ?? config.server.auth.auth0.audience;
+    // Normalize to remove trailing slashes for consistent audience matching
+    const audience = this.normalizeAudience(
+      args.resource ?? config.server.auth.auth0.audience
+    );
 
     const accessToken = this.jwtService.generateAccessToken({
       clientId: args.client_id,
@@ -567,13 +669,21 @@ export class OAuthService {
 
       // Validate audience if provided (RFC 8707 Resource Indicators)
       // Per RFC 7519 Section 4.1.3, aud can be a string or array of strings
+      // Normalize URLs to handle trailing slash differences
       if (expectedAudience !== undefined) {
+        const normalizedExpected = this.normalizeAudience(expectedAudience);
         const audArray = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-        if (!audArray.includes(expectedAudience)) {
+        const normalizedAudArray = audArray
+          .filter((aud): aud is string => typeof aud === 'string' && aud !== '')
+          .map(aud => this.normalizeAudience(aud));
+        if (
+          normalizedAudArray.length === 0 ||
+          !normalizedAudArray.includes(normalizedExpected)
+        ) {
           loggingContext.log('warn', 'Token audience validation failed', {
             data: {
-              expectedAudience,
-              actualAudience: claims.aud,
+              expectedAudience: normalizedExpected,
+              actualAudience: normalizedAudArray,
               clientId: claims.client_id,
             },
           });

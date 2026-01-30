@@ -17,6 +17,7 @@ This document provides essential guidelines for AI models interacting with this 
     - `/storage/`: Pluggable storage abstraction (Memory/Valkey) with EventStore for SSE resumability
   - `/tools`: MCP tool implementations with streaming support
   - `/prompts`: MCP prompt handlers and registry
+  - `/resources`: MCP resource implementations with templates
   - `/libraries`: External service integrations (AWS SDK)
   - `/config`: Centralized configuration with Zod validation
 - `/test`: Test files and setup utilities
@@ -62,8 +63,15 @@ This document provides essential guidelines for AI models interacting with this 
 // Use ToolBuilder pattern for creating tools
 const myTool = new ToolBuilder<MyInput, MyOutput>('tool-name')
   .description('Tool description')
+  .title('Human-Readable Tool Title')
   .inputSchema(MyInputSchema)
   .outputSchema(MyOutputSchema)
+  .annotations({
+    destructive: false,
+    irreversible: false,
+    requiresConfirmation: true,
+    accessesExternalResources: true,
+  })
   .streamingImplementation(async function* (input, context) {
     // Implement streaming tool logic with progress notifications
     yield { success: true, data: result };
@@ -78,6 +86,44 @@ const myTool = new ToolBuilder<MyInput, MyOutput>('tool-name')
 - Implement proper error handling with structured responses
 - Support progress notifications for long-running operations
 - Register tools in `ToolRegistry` for automatic discovery
+- Support tool annotations per MCP 2025-06-18 for trust/safety metadata:
+  - `destructive`: Whether the tool may perform destructive operations
+  - `irreversible`: Whether the tool performs non-reversible operations
+  - `requiresConfirmation`: Whether user confirmation is required
+  - `accessesExternalResources`: Whether the tool accesses network/filesystem
+
+**Resource Development:**
+
+```typescript
+// Use ResourceBuilder pattern for creating resources
+const myResource = new ResourceBuilder('file:///example.txt')
+  .name('Example File')
+  .title('Example File Title')
+  .description('An example text file')
+  .mimeType('text/plain')
+  .annotations({ audience: ['user'], priority: 0.8 })
+  .readImplementation(async (uri, context) => ({
+    contents: [{ uri, mimeType: 'text/plain', text: 'Hello World' }],
+  }))
+  .build();
+
+// Use ResourceTemplateBuilder for parameterized resources
+const myTemplate = new ResourceTemplateBuilder('file:///{path}')
+  .name('File Resource')
+  .description('Access files by path')
+  .readImplementation(async (uri, context) => {
+    // Extract path from URI and return content
+    return { contents: [{ uri, text: 'File content' }] };
+  })
+  .build();
+```
+
+**Resource Requirements:**
+
+- All resources MUST implement `ResourceBuilder` or `ResourceTemplateBuilder` interface
+- Use URI schemes appropriate for the resource type
+- Support resource annotations (audience, priority, lastModified) per MCP 2025-06-18
+- Register resources in `ResourceRegistry` for automatic discovery
 
 **Session Management:**
 
@@ -104,7 +150,7 @@ const myTool = new ToolBuilder<MyInput, MyOutput>('tool-name')
 
 ## Architecture
 
-- **Runtime**: Node.js ≥22.17.0, npm ≥11.5.2
+- **Runtime**: Node.js >=25.5.0, npm >=11.5.2
 - **Build System**: Rspack for fast TypeScript compilation
 - **Transport**: HTTP-based MCP server with Express.js and streaming support
 - **Authentication**: OAuth 2.0 proxy with Auth0, JWT tokens, session management

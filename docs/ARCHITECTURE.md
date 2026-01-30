@@ -31,6 +31,7 @@ flowchart TB
         mcp[MCP Protocol Handler]
         tools[Tool Registry]
         prompts[Prompt Registry]
+        resources[Resource Registry]
     end
 
     subgraph storage [Storage Layer]
@@ -48,6 +49,7 @@ flowchart TB
     auth --> mcp
     mcp --> tools
     mcp --> prompts
+    mcp --> resources
     auth --> valkey
     auth --> auth0
     tools --> aws
@@ -59,9 +61,10 @@ flowchart TB
 | ------------------------ | -------------------------------------------------------------------------- |
 | **HTTP Transport**       | Express.js server handling HTTP requests with streaming support            |
 | **OAuth Proxy**          | Implements OAuth 2.0 with Dynamic Client Registration, delegating to Auth0 |
-| **MCP Protocol Handler** | Processes MCP protocol messages and routes to tools/prompts                |
+| **MCP Protocol Handler** | Processes MCP protocol messages and routes to tools/prompts/resources      |
 | **Tool Registry**        | Manages registered MCP tools with streaming execution support              |
 | **Prompt Registry**      | Manages registered MCP prompts                                             |
+| **Resource Registry**    | Manages registered MCP resources and templates with pagination support     |
 | **Storage Layer**        | Pluggable storage for sessions, tokens, and OAuth data                     |
 
 ---
