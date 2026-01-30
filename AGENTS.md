@@ -150,7 +150,7 @@ const myTemplate = new ResourceTemplateBuilder('file:///{path}')
 
 ## Architecture
 
-- **Runtime**: Node.js ≥22.17.0, npm ≥11.5.2
+- **Runtime**: Node.js >=25.5.0, npm >=11.5.2
 - **Build System**: Rspack for fast TypeScript compilation
 - **Transport**: HTTP-based MCP server with Express.js and streaming support
 - **Authentication**: OAuth 2.0 proxy with Auth0, JWT tokens, session management
