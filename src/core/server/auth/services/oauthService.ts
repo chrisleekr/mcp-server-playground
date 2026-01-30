@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { type Application } from 'express';
+import { URL } from 'url';
 
 import { config } from '@/config/manager';
 import { loggingContext } from '@/core/server/http/context';
@@ -62,6 +63,66 @@ export class OAuthService {
       normalized = normalized.slice(0, -1);
     }
     return normalized;
+  }
+
+  /**
+   * Checks if a URI is a loopback address (localhost, 127.0.0.1, [::1]).
+   * Per RFC 8252 Section 7.3, loopback URIs get special port handling.
+   *
+   * @see {@link https://www.rfc-editor.org/rfc/rfc8252#section-7.3}
+   */
+  private isLoopbackURI(uri: string): boolean {
+    try {
+      const parsed = new URL(uri);
+      const host = parsed.hostname.toLowerCase();
+      return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Matches a redirect URI against registered URIs with RFC 8252 loopback port flexibility.
+   *
+   * For loopback URIs (localhost, 127.0.0.1, [::1]): matches if scheme, host, and path match
+   * (port is ignored per RFC 8252 Section 7.3).
+   * For non-loopback URIs: requires exact match per MCP specification.
+   *
+   * @see {@link https://www.rfc-editor.org/rfc/rfc8252#section-7.3}
+   * @see {@link https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#open-redirection}
+   */
+  private matchesRedirectURI(
+    requestURI: string,
+    registeredURIs: string[]
+  ): boolean {
+    try {
+      const requested = new URL(requestURI);
+
+      for (const registered of registeredURIs) {
+        const registeredURL = new URL(registered);
+
+        if (this.isLoopbackURI(requestURI) && this.isLoopbackURI(registered)) {
+          // RFC 8252: For loopback, match scheme + host + path (ignore port)
+          if (
+            requested.protocol === registeredURL.protocol &&
+            requested.hostname.toLowerCase() ===
+              registeredURL.hostname.toLowerCase() &&
+            requested.pathname === registeredURL.pathname
+          ) {
+            return true;
+          }
+        } else {
+          // Non-loopback: exact match required per MCP spec
+          if (requestURI === registered) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -154,6 +215,7 @@ export class OAuthService {
   ): Promise<OAuthServiceClient | null> {
     let client = await this.storageService.getClient(args.client_id);
     if (!client) {
+      // Auto-register new client with the provided redirect_uri (valid DCR per RFC 7591)
       const registerClientResponse = await this.registerClient({
         client_id: args.client_id,
         client_secret: '',
@@ -174,21 +236,9 @@ export class OAuthService {
       client = await this.storageService.getClient(
         registerClientResponse.client_id
       );
-    } else if (!client.redirectUris.includes(args.redirect_uri)) {
-      loggingContext.log(
-        'debug',
-        'Adding new redirect URI to existing client',
-        {
-          data: {
-            clientId: client.clientId,
-            newRedirectUri: args.redirect_uri,
-            existingRedirectUris: client.redirectUris,
-          },
-        }
-      );
-      client.redirectUris.push(args.redirect_uri);
-      await this.storageService.registerClient(client);
     }
+    // Redirect URI validation happens in validateAuthorizationClient
+    // with RFC 8252 loopback port flexibility
 
     return client;
   }
@@ -197,7 +247,18 @@ export class OAuthService {
     args: OAuthServiceHandleAuthorizationRequest,
     client: OAuthServiceClient | null
   ): void {
-    if (client && !client.redirectUris.includes(args.redirect_uri)) {
+    if (
+      client &&
+      !this.matchesRedirectURI(args.redirect_uri, client.redirectUris)
+    ) {
+      loggingContext.log('warn', 'Redirect URI validation failed', {
+        data: {
+          clientId: client.clientId,
+          requestedURI: args.redirect_uri,
+          registeredURIs: client.redirectUris,
+          isLoopback: this.isLoopbackURI(args.redirect_uri),
+        },
+      });
       throw new Error('Redirect URI not found');
     }
 
