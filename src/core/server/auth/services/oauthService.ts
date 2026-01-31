@@ -114,7 +114,24 @@ export class OAuthService {
               registeredURL.hostname.toLowerCase() &&
             requested.pathname === registeredURL.pathname
           ) {
+            loggingContext.log('info', 'Loopback redirect URI matches', {
+              data: {
+                requestURI,
+                registered,
+              },
+            });
             return true;
+          } else {
+            loggingContext.log(
+              'debug',
+              'Loopback redirect URI does not match',
+              {
+                data: {
+                  requestURI,
+                  registered,
+                },
+              }
+            );
           }
         } else {
           // MCP Specification: Open Redirection Prevention
@@ -123,7 +140,24 @@ export class OAuthService {
           // redirect URIs against pre-registered values"
           // @see https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#open-redirection
           if (requestURI === registered) {
+            loggingContext.log('info', 'Non-loopback redirect URI matches', {
+              data: {
+                requestURI,
+                registered,
+              },
+            });
             return true;
+          } else {
+            loggingContext.log(
+              'debug',
+              'Non-loopback redirect URI does not match',
+              {
+                data: {
+                  requestURI,
+                  registered,
+                },
+              }
+            );
           }
         }
       }
@@ -260,7 +294,7 @@ export class OAuthService {
       client &&
       !this.matchesRedirectURI(args.redirect_uri, client.redirectUris)
     ) {
-      loggingContext.log('warn', 'Redirect URI validation failed', {
+      loggingContext.log('error', 'Redirect URI validation failed', {
         data: {
           clientId: client.clientId,
           requestedURI: args.redirect_uri,
@@ -272,6 +306,12 @@ export class OAuthService {
     }
 
     if (client && !client.responseTypes.includes('code')) {
+      loggingContext.log('error', 'Response type not supported', {
+        data: {
+          client_id: client.clientId,
+          response_type: args.response_type,
+        },
+      });
       throw new Error('Response type not supported');
     }
   }
@@ -327,13 +367,24 @@ export class OAuthService {
       this.auth0Provider.generateCodeChallenge(codeVerifier);
     const state = this.auth0Provider.generateState();
 
+    // Ensure 'openid' scope is always included for Auth0's /userinfo endpoint
+    // The client may request custom scopes (e.g., 'all'), but OIDC requires 'openid'
+    // Use Set for proper word boundary check per RFC 6749 Section 3.3 (space-delimited scopes)
+    // Normalize whitespace per RFC 6749 Appendix A.4: scope = scope-token *( SP scope-token )
+    const requestedScope = args.scope ?? 'openid profile email';
+    const scopeTokens = requestedScope.split(/\s+/).filter(Boolean);
+    const scopeSet = new Set(scopeTokens);
+    const normalizedScope = scopeSet.has('openid')
+      ? scopeTokens.join(' ')
+      : ['openid', ...scopeTokens].join(' ');
+
     const authSession: OAuthServiceAuthorizationSession = {
       sessionId,
       clientId: client.clientId,
       // Note: redirectUri must be request's redirect_uri.
       redirectUri: args.redirect_uri,
       // redirectUri: `http://${config.server.http.host}:${config.server.http.port}/oauth/auth0-callback`,
-      scope: args.scope ?? 'openid profile email',
+      scope: normalizedScope,
       state,
       codeChallenge,
       codeChallengeMethod: args.code_challenge_method ?? 'S256',
@@ -364,7 +415,7 @@ export class OAuthService {
       state,
       codeChallenge,
       codeChallengeMethod: authSession.codeChallengeMethod,
-      scope: args.scope ?? 'openid profile email',
+      scope: normalizedScope,
     });
 
     return { redirectUrl };

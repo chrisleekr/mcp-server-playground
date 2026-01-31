@@ -1,28 +1,55 @@
-# This workflow is used to release a new version of the package to the main branch.
-# It follows the following steps:
-#   - Merge PR/Push to main → semantic-release.yml → creates tag → calls docker-build.yml.
+# This workflow is used to release a new version of the package.
+# It can be triggered via:
+#   - workflow_call: Called by push.yml for feature branch releases (dev)
+#   - workflow_dispatch: Manual trigger for production releases
+#   - push to main: Automatic production releases (commented out by default)
 # Reference: https://semantic-release.gitbook.io/semantic-release/recipes/ci-configurations/github-actions
 name: Semantic Release
 
 on:
-  # Comment out this section so the release can be triggered manually.
+  # Uncomment to enable automatic releases on push to main
   # push:
   #   branches:
   #     - main
-  # workflow_run:
-  #   workflows:
-  #     - 'Push'
-  #   types:
-  #     - completed
-  #   branches:
-  #     - main
+  workflow_call:
+    inputs:
+      is-dev-release:
+        description: 'Whether this is a dev/pre-release (uses dev config)'
+        required: false
+        type: boolean
+        default: false
+      skip-checks:
+        description: 'Skip quality checks (when caller already ran them)'
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      new-release-published:
+        description: 'Whether a new release was published'
+        value: ${{ jobs.release.outputs.new-release-published }}
+      new-release-version:
+        description: 'The version of the new release'
+        value: ${{ jobs.release.outputs.new-release-version }}
   workflow_dispatch:
+    inputs:
+      is-dev-release:
+        description: 'Whether this is a dev/pre-release'
+        required: false
+        type: boolean
+        default: false
+
+# Do not set concurrency group since this workflow is called by other workflows. Otherwise, deadlock will occur.
 
 permissions:
   contents: write # Required: create tags, GitHub releases, and commit changes (git plugin)
 
+env:
+  BUN_VERSION: '1.3.8'
+  NODE_VERSION: '22'
+
 jobs:
   release:
+    name: Semantic Release${{ inputs.is-dev-release && ' - Dev' || '' }}
     runs-on: ubuntu-latest
     env:
       HUSKY: 0
@@ -31,61 +58,78 @@ jobs:
       new-release-published: ${{ steps.semantic-release.outputs.new-release-published }}
       new-release-version: ${{ steps.semantic-release.outputs.new-release-version }}
     steps:
-      - name: Checkout
+      - name: Checkout source code
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - name: Setup Node.js
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Setup Node.js for semantic-release
         uses: actions/setup-node@v6
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Enable Corepack
-        run: corepack enable npm
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Run typecheck
-        run: npm run typecheck
+        if: ${{ !inputs.skip-checks }}
+        run: bun run typecheck
 
       - name: Run lint
-        run: npm run lint
+        if: ${{ !inputs.skip-checks }}
+        run: bun run lint
 
       - name: Run format
-        run: npm run format
+        if: ${{ !inputs.skip-checks }}
+        run: bun run format
 
       - name: Run test
-        run: npm run test
+        if: ${{ !inputs.skip-checks }}
+        run: bun test
 
       - name: Build project
-        run: npm run build
+        run: bun run build
 
       - name: Install semantic-release packages
         run: |
-          npm install --no-save \
-            semantic-release@^24.2.5 \
+          npm install --no-save --no-package-lock \
+            semantic-release@^25.0.3 \
             @semantic-release/changelog@^6.0.3 \
             @semantic-release/commit-analyzer@^13.0.1 \
             @semantic-release/git@^10.0.1 \
-            @semantic-release/github@^11.0.3 \
-            @semantic-release/npm@^12.0.1 \
-            @semantic-release/release-notes-generator@^14.0.3 \
+            @semantic-release/github@^12.0.3 \
+            @semantic-release/npm@^13.1.3 \
+            @semantic-release/release-notes-generator@^14.1.0 \
             @semantic-release/exec@^7.1.0
 
-      - name: Verify npm audit
-        run: npm audit signatures
-
-      - name: Release
+      - name: Semantic Release
         id: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          # For dev releases, swap config files since semantic-release doesn't support specifying config path via CLI
+          if [ "${{ inputs.is-dev-release }}" == "true" ]; then
+            echo "Running semantic-release with dev config..."
+            mv release.config.mjs release.config.mjs.backup
+            mv release.config.dev.mjs release.config.mjs
+          else
+            echo "Running semantic-release with production config..."
+          fi
+
           npx semantic-release
+
+          # Restore config files if dev release
+          if [ "${{ inputs.is-dev-release }}" == "true" ]; then
+            mv release.config.mjs release.config.dev.mjs
+            mv release.config.mjs.backup release.config.mjs
+          fi
 
           # Check if release output files created by @semantic-release/exec
           if [ -f "RELEASE_VERSION" ]; then
@@ -105,5 +149,5 @@ jobs:
     uses: ./.github/workflows/docker-build.yml
     with:
       tag-name: 'v${{ needs.release.outputs.new-release-version }}'
-      is-dev-release: false
+      is-dev-release: ${{ inputs.is-dev-release || false }}
     secrets: inherit

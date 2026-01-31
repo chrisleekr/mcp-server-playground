@@ -24,21 +24,22 @@ This document provides essential guidelines for AI models interacting with this 
 
 ## Development Commands
 
-- **Build**: `npm run build` (Rspack)
-- **Development**: `npm run dev` (auto-reload + pretty logging)
-- **Production**: `npm start`
-- **Type check**: `npm run typecheck`
-- **Lint**: `npm run lint` / `npm run lint:fix`
-- **Format**: `npm run format` / `npm run format:check`
-- **Test**: `npm test` / `npm run test:watch`
-- **MCP Inspector**: `npm run test:inspector`
-- **Docker**: `npm run docker:build` / `npm run docker:run`
+- **Build**: `bun run build` (Bun bundler)
+- **Development**: `bun run dev` (auto-reload + pretty logging)
+- **Production**: `bun run start`
+- **Type check**: `bun run typecheck`
+- **Lint**: `bun run lint` / `bun run lint:fix`
+- **Format**: `bun run format` / `bun run format:fix`
+- **Test**: `bun test` / `bun test --watch`
+- **Test Coverage**: `bun test --coverage`
+- **MCP Inspector**: `bun run test:inspector`
+- **Docker**: `bun run docker:build` / `docker compose up -d`
 
 ## TypeScript & Code Style
 
 - **Language**: Use TypeScript for all development with strict mode enabled
 - **Strictness**: Maximum TypeScript strictness (`exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `noImplicitReturns`)
-- **Module System**: ESM with NodeNext resolution, path aliases (`@/` → `src/`)
+- **Module System**: ESM with bundler resolution, path aliases (`@/` → `src/`)
 - **Import Organization**: Auto-sorted with `simple-import-sort` plugin
 - **Functions**: MUST include explicit return types for all functions
 - **Naming Conventions**: Use meaningful variable/function names; prefer "URL" (not "Url"), "API" (not "Api"), "ID" (not "Id")
@@ -134,24 +135,24 @@ const myTemplate = new ResourceTemplateBuilder('file:///{path}')
 
 ## Testing
 
-- **Framework**: Jest with ts-jest preset, Node.js environment
+- **Framework**: Bun's built-in test runner
 - **Test Files**: `*.test.ts` pattern in `src/__tests__/` or alongside source
-- **Coverage**: Enabled with text, lcov, clover, and json reporters
-- **Timeout**: 10 seconds default with auto-clear and restore mocks
+- **Coverage**: Enabled with text and lcov reporters
+- **Timeout**: 10 seconds default
 - **Test Writing**: Use descriptive names without "should" prefix
 - **Commands**:
 
   ```bash
-  npm test                    # Run all tests
-  npm test -- --coverage     # Run with coverage
-  npm test -- path/to/test   # Run specific test
-  npm run test:watch         # Watch mode
+  bun test                    # Run all tests
+  bun test --coverage         # Run with coverage
+  bun test path/to/test       # Run specific test
+  bun test --watch            # Watch mode
   ```
 
 ## Architecture
 
-- **Runtime**: Node.js >=25.5.0, npm >=11.5.2
-- **Build System**: Rspack for fast TypeScript compilation
+- **Runtime**: Bun ≥1.3.8
+- **Build System**: Bun's built-in bundler
 - **Transport**: HTTP-based MCP server with Express.js and streaming support
 - **Authentication**: OAuth 2.0 proxy with Auth0, JWT tokens, session management
 - **Storage**: Pluggable storage with Memory and Valkey (Redis-compatible) implementations
@@ -189,14 +190,14 @@ Centralized in `src/config/` with Zod validation:
 Before submitting changes, run these programmatic checks:
 
 ```bash
-npm run lint          # ESLint with TypeScript rules
-npm run typecheck     # TypeScript compilation check
-npm run format:check  # Prettier formatting check
-npm run test          # Jest test suite
-npm run build         # Production build verification
+bun run lint          # ESLint with TypeScript rules
+bun run typecheck     # TypeScript compilation check
+bun run format        # Prettier formatting check
+bun test              # Bun test suite
+bun run build         # Production build verification
 ```
 
-All checks MUST pass before merging. Use `npm run lint:fix` and `npm run format` to auto-fix issues.
+All checks MUST pass before merging. Use `bun run lint:fix` and `bun run format:fix` to auto-fix issues.
 
 ## Pull Request Guidelines
 
@@ -220,13 +221,19 @@ All checks MUST pass before merging. Use `npm run lint:fix` and `npm run format`
 
 The following steps will get your local development environment up and running.
 
-### 1. Install Dependencies
+### 1. Install Bun
 
 ```bash
-npm install
+curl -fsSL https://bun.sh/install | bash
 ```
 
-### 2. Configure Environment
+### 2. Install Dependencies
+
+```bash
+bun install
+```
+
+### 3. Configure Environment
 
 Create a `.env` file by copying the example:
 
@@ -242,20 +249,20 @@ This file holds configuration for the server, authentication, and tools. Key var
 - `AUTH0_*_...`: If auth is enabled, these variables must be configured with your Auth0 application details.
 - `MCP_CONFIG_TOOLS_AWS_*`: (Optional) AWS credentials for tools that interact with AWS services.
 
-### 3. Initialize Development Environment
+### 4. Initialize Development Environment
 
 Run the one-time setup script:
 
 ```bash
-npm run dev:setup
+bun run dev:setup
 ```
 
 This command uses `docker-compose` to start the Valkey (Redis-compatible) database required for session and data storage.
 
-### 4. Run the Development Server
+### 5. Run the Development Server
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 This will start the server with auto-reloading on file changes. The server will be accessible at `http://localhost:3000`.
@@ -264,7 +271,7 @@ This will start the server with auto-reloading on file changes. The server will 
 
 ```bash
 cp mcp-config.example.json mcp-config.json
-npm run test:inspector        # Test with MCP Inspector
+bun run test:inspector        # Test with MCP Inspector
 ```
 
 **Local Testing with Cursor**:

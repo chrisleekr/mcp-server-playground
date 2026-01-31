@@ -69,22 +69,28 @@ A playground for Model Context Protocol (MCP) server built with TypeScript and S
    cd mcp-server-playground
    ```
 
-2. Install dependencies:
+2. Install Bun (if not already installed):
 
    ```bash
-   npm install
+   curl -fsSL https://bun.sh/install | bash
    ```
 
-3. Set up environment variables:
+3. Install dependencies:
+
+   ```bash
+   bun install
+   ```
+
+4. Set up environment variables:
 
    ```bash
    cp .env.example .env
    ```
 
-4. Set up the MCP server for local development
+5. Set up the MCP server for local development
 
    ```bash
-   npm run dev:setup
+   bun run dev:setup
    ```
 
 #### Helm Chart
@@ -112,7 +118,7 @@ helm install mcp-server-playground chrisleekr/mcp-server-playground
    }
    ```
 
-### Use `npx @modelcontextprotocol/inspector` to test the MCP server
+### Use MCP Inspector to test the server
 
 1. Copy `mcp-config.example.json` to `mcp-config.json`
 
@@ -121,16 +127,18 @@ helm install mcp-server-playground chrisleekr/mcp-server-playground
 3. Run the inspector
 
    ```bash
-   npm run docker:run
+   docker compose up -d
 
    # Then run the inspector
-   npx @modelcontextprotocol/inspector -y --config ./mcp-config.json --server mcp-server-playground-cursor
+   bunx @modelcontextprotocol/inspector -y --config ./mcp-config.json --server mcp-server-playground-inspector
    ```
 
    or
 
    ```bash
-   npm run test:inspector
+   docker compose up -d
+
+   bun run test:inspector
    ```
 
 ### Setup Auth0 for authorization
@@ -139,7 +147,7 @@ helm install mcp-server-playground chrisleekr/mcp-server-playground
    - Go to [Auth0 Dashboard](https://manage.auth0.com/)
    - Click on "Applications"
    - Click on "Create Application"
-     - Name: MCP Server Boilerplate
+     - Name: MCP Server Playground
      - Application Type: Regular Web Application
    - Click on "Create"
 
@@ -152,7 +160,7 @@ helm install mcp-server-playground chrisleekr/mcp-server-playground
 3. Create a new API
    - Click on "APIs"
    - Click on "Create API"
-     - Name: MCP Server Boilerplate
+     - Name: MCP Server Playground
      - Identifier: `urn:mcp-server-playground`
      - JSON Web Token (JWT) Profile: Auth0
      - JSON Web Token (JWT) Signature Algorithm: RS256

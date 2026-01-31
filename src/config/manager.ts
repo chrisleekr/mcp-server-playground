@@ -17,9 +17,9 @@ export class ConfigManager {
       timeZone: 'Australia/Melbourne',
       server: {
         environment: 'dev',
-        name: 'mcp-server-boilerplate',
+        name: 'mcp-server-playground',
         version: packageJson.version,
-        description: 'MCP Server Boilerplate',
+        description: 'MCP Server Playground',
         http: {
           port: 3000,
           host: 'localhost',
@@ -38,7 +38,7 @@ export class ConfigManager {
             domain: 'https://dev-1234567890.auth0.com',
             clientId: '1234567890',
             clientSecret: '1234567890',
-            audience: 'urn:mcp-server-boilerplate',
+            audience: 'urn:mcp-server-playground',
             scope: 'openid profile email',
           },
         },

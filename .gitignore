@@ -8,7 +8,6 @@ yarn-error.log*
 dist/
 build/
 *.tsbuildinfo
-.rspack/
 
 # Environment variables
 .env
