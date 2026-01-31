@@ -11,7 +11,8 @@
     "**/.vscode": true,
     "**/coverage": true,
     "**/node_modules": true
-  },"editor.formatOnSave": true,
+  },
+  "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
@@ -35,7 +36,7 @@
   "[yaml]": {
     "editor.defaultFormatter": "redhat.vscode-yaml"
   },
-  "[sql]":{
+  "[sql]": {
     "editor.defaultFormatter": "bradymholt.pgformatter"
   },
   "cSpell.language": "en-US",
@@ -44,6 +45,8 @@
     "AWSS",
     "buildkitd",
     "buildx",
+    "bunfig",
+    "bunx",
     "CERTDIR",
     "chrislee",
     "chrisleekr",
@@ -61,7 +64,6 @@
     "oninitialized",
     "PKCE",
     "resumability",
-    "rspack",
     "Streamable",
     "tsparser",
     "uuidv",

@@ -8,8 +8,8 @@
     "lib": ["ES2022", "ES2023"],
     "moduleDetection": "auto",
     /* Modules */
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "rootDir": "./",
     "baseUrl": "./",
     "paths": {
@@ -63,12 +63,8 @@
     "noPropertyAccessFromIndexSignature": true,
     /* Completeness */
     "skipLibCheck": true,
-    "types": ["node", "@rspack/core/module", "jest"]
+    "types": ["bun-types"]
   },
-  "include": ["src/**/*", "test/**/*"],
-  "exclude": ["node_modules", "dist"],
-  "ts-node": {
-    "esm": true,
-    "require": ["tsconfig-paths/register"]
-  }
+  "include": ["src/**/*", "test/**/*", "scripts/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

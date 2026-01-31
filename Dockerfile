@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # hadolint global ignore=DL3018
 
-FROM node:25.5.0-alpine AS base
+FROM oven/bun:1.3.8-alpine AS base
 
 # Stage 1: Build stage
 FROM base AS development
@@ -11,14 +11,14 @@ WORKDIR /app
 # Disable husky
 ENV HUSKY=0
 
-COPY package*.json ./
+COPY package.json bun.lock ./
 
-RUN npm ci && npm cache clean --force
+RUN bun install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
-RUN npm run build
+RUN bun run build
 
 FROM base AS deps
 
@@ -27,15 +27,11 @@ WORKDIR /app
 # Disable husky in production deps
 ENV HUSKY=0
 
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
 
 # Stage 2: Production stage
 FROM base AS production
-
-# Disable npm update notifications to prevent stdout pollution
-ENV NPM_CONFIG_UPDATE_NOTIFIER=false
-ENV NO_UPDATE_NOTIFIER=true
 
 ARG PACKAGE_VERSION=untagged
 ARG GIT_HASH=unspecified
@@ -50,17 +46,17 @@ RUN apk add --no-cache dumb-init
 
 WORKDIR /app
 
-COPY --from=development --chown=node:node /app/dist ./dist
-COPY --from=development --chown=node:node /app/package*.json ./
-COPY --from=deps --chown=node:node /app/node_modules ./node_modules
+COPY --from=development --chown=bun:bun /app/dist ./dist
+COPY --from=development --chown=bun:bun /app/package.json ./
+COPY --from=deps --chown=bun:bun /app/node_modules ./node_modules
 
-USER node
+USER bun
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+  CMD bun -e "fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 ENTRYPOINT ["dumb-init", "--"]
 
-CMD ["npm", "start", "--silent"]
+CMD ["bun", "run", "dist/index.js"]

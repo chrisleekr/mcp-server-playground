@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+
 import { MemoryStorage } from '@/core/storage/memory';
 
 describe('MemoryStorage', () => {
@@ -95,19 +97,19 @@ describe('MemoryStorage', () => {
   describe('TTL', () => {
     it('expires key after TTL', async () => {
       const now = Date.now();
-      jest.spyOn(Date, 'now').mockReturnValue(now);
+      const spy = spyOn(Date, 'now').mockReturnValue(now);
 
       await storage.set('expiring-key', 'value', 1);
 
       const beforeExpiry = await storage.get('expiring-key');
       expect(beforeExpiry).toBe('value');
 
-      jest.spyOn(Date, 'now').mockReturnValue(now + 1500);
+      spy.mockReturnValue(now + 1500);
 
       const afterExpiry = await storage.get('expiring-key');
       expect(afterExpiry).toBeNull();
 
-      jest.restoreAllMocks();
+      spy.mockRestore();
     });
   });
 });

@@ -15,8 +15,6 @@ export default [
       '*.config.js',
       '*.config.mjs',
       '*.config.cjs',
-      '.rspack/**',
-      'jest.config.ts',
     ],
   },
   js.configs.recommended,
@@ -39,6 +37,7 @@ export default [
         require: 'readonly',
         module: 'readonly',
         exports: 'readonly',
+        Bun: 'readonly',
       },
     },
     plugins: {
@@ -152,20 +151,7 @@ export default [
   prettierConfig,
 
   {
-    files: ['**/*.test.ts', '**/jest.config.ts', '**/test/**/*.ts'],
-    languageOptions: {
-      globals: {
-        describe: 'readonly',
-        it: 'readonly',
-        expect: 'readonly',
-        test: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly',
-        jest: 'readonly',
-      },
-    },
+    files: ['**/*.test.ts', '**/test/**/*.ts'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',

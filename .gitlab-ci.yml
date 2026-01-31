@@ -1,4 +1,4 @@
-image: node:25.5.0-alpine
+image: oven/bun:1.3.8-alpine
 
 stages:
   - prepare
@@ -21,11 +21,11 @@ stages:
 .cache_config: &cache_config
   key:
     files:
-      - package-lock.json
+      - bun.lock
     prefix: ${CI_COMMIT_REF_SLUG}
   paths:
     - node_modules/
-    - .npm/
+    - ~/.bun/install/cache/
 
 dependencies:
   stage: prepare
@@ -34,7 +34,7 @@ dependencies:
     <<: *cache_config
     policy: pull-push
   script:
-    - npm ci --cache .npm --prefer-offline
+    - bun install --frozen-lockfile
 
 build:
   stage: build
@@ -42,7 +42,7 @@ build:
     <<: *cache_config
     policy: pull
   script:
-    - npm run build
+    - bun run build
   needs:
     - dependencies
   artifacts:
@@ -60,7 +60,7 @@ lint:
     - dependencies
   <<: *feature_branch
   script:
-    - npm run lint
+    - bun run lint
 
 format:
   stage: test
@@ -72,7 +72,7 @@ format:
     - dependencies
   <<: *feature_branch
   script:
-    - npm run format
+    - bun run format
 
 typecheck:
   stage: test
@@ -84,7 +84,7 @@ typecheck:
     - dependencies
   <<: *feature_branch
   script:
-    - npm run typecheck
+    - bun run typecheck
 
 # test-unit:
 #   stage: test
@@ -95,7 +95,7 @@ typecheck:
 #   needs:
 #     - dependencies
 #   script:
-#     - npm run test -- --ci
+#     - bun test
 #   coverage: /All files[^\|]*\|[^\|]*\s+([\d\.]+)/
 #   artifacts:
 #     name: coverage
@@ -103,8 +103,6 @@ typecheck:
 #     expire_in: 2 days
 #     paths:
 #       - coverage/
-#     reports:
-#       junit: coverage/jest-junit.xml
 
 # Publish in branch with dev tag (for testing)
 publish-dev-npm:
@@ -116,12 +114,13 @@ publish-dev-npm:
     policy: pull
   needs:
     - dependencies
+    - build
   <<: *feature_branch
   script:
-    - echo "@chrislee:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
+    - echo "@chrisleekr:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
     - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
-    - npm version prerelease --preid=dev-${CI_COMMIT_SHORT_SHA} --no-git-tag-version
-    - npm publish --tag dev-${CI_COMMIT_SHORT_SHA}
+    - bunx npm version prerelease --preid=dev-${CI_COMMIT_SHORT_SHA} --no-git-tag-version
+    - bun publish --registry "https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" --tag dev-${CI_COMMIT_SHORT_SHA}
 
 publish-dev-docker:
   stage: release
@@ -161,10 +160,9 @@ publish-dev-docker:
 #     - build
 #   script:
 #     - apk add --no-cache git
-#     - npm install -g semantic-release @semantic-release/gitlab @semantic-release/npm @semantic-release/git @semantic-release/changelog
 #     - echo "@chrislee:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
 #     - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
-#     - semantic-release
+#     - bunx semantic-release
 
 publish-tag-docker:
   stage: release

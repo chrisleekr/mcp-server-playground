@@ -1,15 +1,15 @@
 {
   "mcpServers": {
-    "mcp-server-boilerplate-inspector": {
+    "mcp-server-playground-inspector": {
       "type": "streamable-http",
       "url": "http://0.0.0.0:3000/mcp"
     },
-    "mcp-server-boilerplate-cursor": {
+    "mcp-server-playground-cursor": {
       "type": "http",
       "url": "http://0.0.0.0:3000/mcp"
     },
-    "mcp-server-boilerplate-claude": {
-      "command": "npx",
+    "mcp-server-playground-claude": {
+      "command": "bunx",
       "args": [
         "-y",
         "mcp-remote",
@@ -20,7 +20,7 @@
         "--debug"
       ],
       "env": {
-        "PATH": "~/.local/share/nvm/v25.5.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        "PATH": "~/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       }
     }
   }

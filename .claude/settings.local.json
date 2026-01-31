@@ -10,8 +10,17 @@
       "mcp__github__get_issue",
       "Bash(grep:*)",
       "WebFetch(domain:github.com)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "WebFetch(domain:turbo.build)",
+      "WebFetch(domain:turborepo.dev)",
+      "Bash(bun test:*)",
+      "Bash(bun run build:*)",
+      "Bash(bun run lint:*)",
+      "Bash(bun run format:*)",
+      "Bash(bun run:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
-  }
+  },
+  "outputStyle": "Explanatory"
 }
