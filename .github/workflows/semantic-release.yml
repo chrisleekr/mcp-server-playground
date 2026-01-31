@@ -102,27 +102,28 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          # For dev releases, swap config files since semantic-release doesn't support specifying config path via CLI
           if [ "${{ inputs.is-dev-release }}" == "true" ]; then
             echo "Running semantic-release with dev config..."
-            bunx semantic-release@^25.0.3 \
-              --extends ./release.config.dev.mjs \
-              -p @semantic-release/changelog@^6.0.3 \
-              -p @semantic-release/commit-analyzer@^13.0.1 \
-              -p @semantic-release/git@^10.0.1 \
-              -p @semantic-release/github@^12.0.3 \
-              -p @semantic-release/npm@^13.1.3 \
-              -p @semantic-release/release-notes-generator@^14.1.0 \
-              -p @semantic-release/exec@^7.1.0
+            mv release.config.mjs release.config.mjs.backup
+            mv release.config.dev.mjs release.config.mjs
           else
             echo "Running semantic-release with production config..."
-            bunx semantic-release@^25.0.3 \
-              -p @semantic-release/changelog@^6.0.3 \
-              -p @semantic-release/commit-analyzer@^13.0.1 \
-              -p @semantic-release/git@^10.0.1 \
-              -p @semantic-release/github@^12.0.3 \
-              -p @semantic-release/npm@^13.1.3 \
-              -p @semantic-release/release-notes-generator@^14.1.0 \
-              -p @semantic-release/exec@^7.1.0
+          fi
+
+          bunx semantic-release@^25.0.3 \
+            -p @semantic-release/changelog@^6.0.3 \
+            -p @semantic-release/commit-analyzer@^13.0.1 \
+            -p @semantic-release/git@^10.0.1 \
+            -p @semantic-release/github@^12.0.3 \
+            -p @semantic-release/npm@^13.1.3 \
+            -p @semantic-release/release-notes-generator@^14.1.0 \
+            -p @semantic-release/exec@^7.1.0
+
+          # Restore config files if dev release
+          if [ "${{ inputs.is-dev-release }}" == "true" ]; then
+            mv release.config.mjs release.config.dev.mjs
+            mv release.config.mjs.backup release.config.mjs
           fi
 
           # Check if release output files created by @semantic-release/exec
