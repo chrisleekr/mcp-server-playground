@@ -111,7 +111,8 @@ jobs:
             echo "Running semantic-release with production config..."
           fi
 
-          bunx semantic-release@^25.0.3 \
+          # Use npx instead of bunx since npx handles plugin installation correctly
+          npx --yes semantic-release@^25.0.3 \
             -p @semantic-release/changelog@^6.0.3 \
             -p @semantic-release/commit-analyzer@^13.0.1 \
             -p @semantic-release/git@^10.0.1 \
