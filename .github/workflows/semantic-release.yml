@@ -22,7 +22,7 @@ permissions:
   contents: write # Required: create tags, GitHub releases, and commit changes (git plugin)
 
 env:
-  BUN_VERSION: "1.3.8"
+  BUN_VERSION: '1.3.8'
 
 jobs:
   release:
@@ -95,6 +95,6 @@ jobs:
     if: needs.release.outputs.new-release-published == 'true'
     uses: ./.github/workflows/docker-build.yml
     with:
-      tag-name: "v${{ needs.release.outputs.new-release-version }}"
+      tag-name: 'v${{ needs.release.outputs.new-release-version }}'
       is-dev-release: false
     secrets: inherit
