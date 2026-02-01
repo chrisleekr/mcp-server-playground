@@ -32,3 +32,5 @@ Thumbs.db
 # Ignore config files that shouldn't be formatted:
 .env
 .env.*
+
+CHANGELOG.md
