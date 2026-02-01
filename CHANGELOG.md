@@ -1,3 +1,11 @@
+## [1.1.1](https://github.com/chrisleekr/mcp-server-playground/compare/v1.1.0...v1.1.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* **deps:** update dependabot to use bun package-ecosystem ([#185](https://github.com/chrisleekr/mcp-server-playground/issues/185)) ([9a2388d](https://github.com/chrisleekr/mcp-server-playground/commit/9a2388d01f0b7d4319e21a503b80e748d6464d46))
+* **scripts:** use prepare hook instead of postinstall for husky ([#199](https://github.com/chrisleekr/mcp-server-playground/issues/199)) ([e8be615](https://github.com/chrisleekr/mcp-server-playground/commit/e8be6156da62ec5dc2223eb4561a7eaf9676c38e))
+
 # [1.1.0](https://github.com/chrisleekr/mcp-server-playground/compare/v1.0.2...v1.1.0) (2026-01-31)
 
 
