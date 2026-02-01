@@ -24,11 +24,11 @@ FROM base AS deps
 
 WORKDIR /app
 
-# Disable husky in production deps
-ENV HUSKY=0
-
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+
+# --ignore-scripts: Skip lifecycle scripts (prepare/postinstall) because husky
+# is a devDependency not installed with --production, causing "husky: not found"
+RUN bun install --frozen-lockfile --production --ignore-scripts
 
 # Stage 2: Production stage
 FROM base AS production
