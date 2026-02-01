@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/chrisleekr/mcp-server-playground/compare/v1.1.1...v1.1.2) (2026-02-01)
+
+
+### Bug Fixes
+
+* **docker:** skip lifecycle scripts in production install for bun install ([#200](https://github.com/chrisleekr/mcp-server-playground/issues/200)) ([9ebf541](https://github.com/chrisleekr/mcp-server-playground/commit/9ebf5418a8bafb4637de43694d22a4069a1202c1))
+
 ## [1.1.1](https://github.com/chrisleekr/mcp-server-playground/compare/v1.1.0...v1.1.1) (2026-02-01)
 
 
