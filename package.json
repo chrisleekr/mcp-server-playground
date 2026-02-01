@@ -27,6 +27,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
+    "prepare": "husky .husky",
     "build": "bun run scripts/build.ts",
     "postbuild": "./scripts/post-build.sh",
     "dev": "bun --watch run src/index.ts | bun run pino-pretty",
@@ -41,8 +42,7 @@
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "test:inspector": "bunx @modelcontextprotocol/inspector --config ./mcp-config.json --server mcp-server-playground-inspector",
-    "docker:build": "docker build -t mcp-server-playground:local . --progress=plain",
-    "postinstall": "husky .husky || true"
+    "docker:build": "docker build -t mcp-server-playground:local . --progress=plain"
   },
   "keywords": [
     "mcp",
