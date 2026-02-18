@@ -70,7 +70,7 @@
     "@aws-sdk/client-s3": "3.980.0",
     "@aws-sdk/credential-provider-node": "3.972.4",
     "@aws-sdk/credential-providers": "3.980.0",
-    "@modelcontextprotocol/sdk": "1.25.3",
+    "@modelcontextprotocol/sdk": "1.26.0",
     "axios": "1.13.4",
     "base64url": "3.0.1",
     "crypto-js": "4.2.0",
