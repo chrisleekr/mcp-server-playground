@@ -71,7 +71,7 @@
     "@aws-sdk/credential-provider-node": "3.972.4",
     "@aws-sdk/credential-providers": "3.980.0",
     "@modelcontextprotocol/sdk": "1.26.0",
-    "axios": "1.13.4",
+    "axios": "1.13.5",
     "base64url": "3.0.1",
     "crypto-js": "4.2.0",
     "dayjs": "1.11.19",
