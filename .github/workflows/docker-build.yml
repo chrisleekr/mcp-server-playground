@@ -110,7 +110,7 @@ jobs:
 
       - name: Build and push Docker image - Dev/Alpha
         if: env.IS_DEV_RELEASE == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile
@@ -128,7 +128,7 @@ jobs:
 
       - name: Build and push Docker image - Production
         if: env.IS_DEV_RELEASE == 'false'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile
