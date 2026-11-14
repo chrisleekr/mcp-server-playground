@@ -11,16 +11,15 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "rootDir": "./",
-    "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],
-      "@/types/*": ["src/types/*"],
-      "@/core/*": ["src/core/*"],
-      "@/config/*": ["src/config/*"],
-      "@/prompts/*": ["src/prompts/*"],
-      "@/tools/*": ["src/tools/*"],
-      "@/libraries/*": ["src/libraries/*"],
-      "@/utils/*": ["src/utils/*"]
+      "@/*": ["./src/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/core/*": ["./src/core/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/prompts/*": ["./src/prompts/*"],
+      "@/tools/*": ["./src/tools/*"],
+      "@/libraries/*": ["./src/libraries/*"],
+      "@/utils/*": ["./src/utils/*"]
     },
     "resolveJsonModule": true,
     "resolvePackageJsonExports": true,
@@ -36,7 +35,6 @@
     "outDir": "./dist",
     "removeComments": false,
     "importHelpers": true,
-    "downlevelIteration": true,
     "noEmitOnError": true,
     /* Interop Constraints */
     "isolatedModules": true,

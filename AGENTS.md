@@ -190,7 +190,7 @@ Centralized in `src/config/` with Zod validation:
 Before submitting changes, run these programmatic checks:
 
 ```bash
-bun run lint          # ESLint with TypeScript rules
+bun run lint          # Oxlint with type-aware TypeScript rules
 bun run typecheck     # TypeScript compilation check
 bun run format        # Prettier formatting check
 bun test              # Bun test suite

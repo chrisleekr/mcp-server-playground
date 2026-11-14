@@ -14,7 +14,7 @@
   },
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "source.fixAll.oxc": "explicit"
   },
   "typescript.preferences.importModuleSpecifier": "relative",
   "js/ts.implicitProjectConfig.checkJs": true,

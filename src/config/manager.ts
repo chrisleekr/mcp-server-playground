@@ -137,13 +137,10 @@ export class ConfigManager {
 
     let current = this.config as unknown as Record<string, unknown>;
     for (const key of keys) {
-      if ((current as unknown as Record<string, unknown>)[key] === undefined) {
-        (current as unknown as Record<string, unknown>)[key] = {};
+      if (current[key] === undefined) {
+        current[key] = {};
       }
-      current = (current as unknown as Record<string, unknown>)[key] as Record<
-        string,
-        unknown
-      >;
+      current = current[key] as Record<string, unknown>;
     }
 
     // Update the final property
