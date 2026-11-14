@@ -216,8 +216,7 @@ export class ResourceLoader {
   public findTemplateForUri(
     uri: string
   ):
-    | { template: ResourceTemplate; params: Record<string, string> }
-    | undefined {
+    { template: ResourceTemplate; params: Record<string, string> } | undefined {
     return resourceRegistry.findTemplateForUri(uri);
   }
 

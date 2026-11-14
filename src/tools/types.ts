@@ -95,11 +95,7 @@ export interface StructuredContent {
  * Union type for all possible content types in tool results
  */
 export type ToolContentItem =
-  | TextContent
-  | ImageContent
-  | AudioContent
-  | ResourceLink
-  | EmbeddedResource;
+  TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource;
 
 /**
  * Content annotations for tool results per MCP 2025-06-18 specification.
