@@ -1,8 +1,9 @@
 /* eslint-disable max-lines-per-function */
 
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { z } from 'zod';
 
 import { loggingContext, sendProgressNotification } from '@/core/server';
+import { INPUT_JSON_SCHEMA_OPTIONS } from '@/tools/jsonSchema';
 import {
   createResourceLink,
   createStructuredContent,
@@ -195,7 +196,12 @@ export const echoTool: Tool<EchoInput, EchoOutput> = new ToolBuilder<
   .description(
     'Echo a message back with optional transformations, repetition, and structured output support'
   )
-  .inputSchema(zodToJsonSchema(EchoInputSchema) as typeof ToolInputSchema)
+  .inputSchema(
+    z.toJSONSchema(
+      EchoInputSchema,
+      INPUT_JSON_SCHEMA_OPTIONS
+    ) as unknown as typeof ToolInputSchema
+  )
   .outputSchema({
     type: 'object',
     properties: {

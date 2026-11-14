@@ -190,7 +190,7 @@ export const ToolResultSchema = z.object({
   success: z.boolean(),
   data: z.unknown().optional(),
   error: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   executionTime: z.number().optional(),
   timestamp: z.string().optional(),
   /** Optional annotations for the content (MCP 2025-06-18) */
@@ -199,7 +199,7 @@ export const ToolResultSchema = z.object({
     .object({
       type: z.literal('structured'),
       content: z.unknown(),
-      schema: z.record(z.unknown()).optional(),
+      schema: z.record(z.string(), z.unknown()).optional(),
       format: z.enum(['json', 'yaml', 'xml']).optional(),
     })
     .optional(),

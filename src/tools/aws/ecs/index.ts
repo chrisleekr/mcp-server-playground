@@ -3,7 +3,7 @@
 /* eslint-disable complexity */
 import { type Task } from '@aws-sdk/client-ecs';
 import yaml from 'yaml';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { z } from 'zod';
 
 import { config } from '@/config/manager';
 import { sendProgressNotification } from '@/core/server';
@@ -16,6 +16,10 @@ import {
   listClusters,
   startQuery,
 } from '@/libraries/aws';
+import {
+  INPUT_JSON_SCHEMA_OPTIONS,
+  OUTPUT_JSON_SCHEMA_OPTIONS,
+} from '@/tools/jsonSchema';
 import {
   createStructuredContent,
   type Tool,
@@ -362,7 +366,7 @@ ${yaml.stringify(output.cloudwatchLogs)}
     // Create structured content for the new MCP spec
     const structuredOutput = createStructuredContent(
       output,
-      zodToJsonSchema(AWSECSOutputContentSchema),
+      z.toJSONSchema(AWSECSOutputContentSchema, OUTPUT_JSON_SCHEMA_OPTIONS),
       'json'
     );
 
@@ -416,8 +420,13 @@ export const awsEcsTool: Tool<AWSECSInput, AWSECSOutput> = new ToolBuilder<
   AWSECSOutput
 >('aws_ecs')
   .description('Investigate the ECS service, task and cloudwatch logs')
-  .inputSchema(zodToJsonSchema(AWSECSInputSchema) as typeof ToolInputSchema)
-  .outputSchema(zodToJsonSchema(AWSECSOutputSchema))
+  .inputSchema(
+    z.toJSONSchema(
+      AWSECSInputSchema,
+      INPUT_JSON_SCHEMA_OPTIONS
+    ) as unknown as typeof ToolInputSchema
+  )
+  .outputSchema(z.toJSONSchema(AWSECSOutputSchema, OUTPUT_JSON_SCHEMA_OPTIONS))
   .examples([
     {
       description: 'Investigate the ECS service, task and cloudwatch logs',
