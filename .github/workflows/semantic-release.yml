@@ -54,6 +54,10 @@ jobs:
     env:
       HUSKY: 0
     timeout-minutes: 15
+    # npm trusted publishing exchanges the GitHub OIDC token for a short-lived publish token, so no NPM_TOKEN secret.
+    permissions:
+      contents: write
+      id-token: write
     outputs:
       new-release-published: ${{ steps.semantic-release.outputs.new-release-published }}
       new-release-version: ${{ steps.semantic-release.outputs.new-release-version }}
@@ -112,7 +116,6 @@ jobs:
         id: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           # For dev releases, swap config files since semantic-release doesn't support specifying config path via CLI
           if [ "${{ inputs.is-dev-release }}" == "true" ]; then
