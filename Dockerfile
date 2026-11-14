@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # hadolint global ignore=DL3018
 
-FROM oven/bun:1.3.8-alpine AS base
+FROM oven/bun:1.4.4-alpine AS base
 
 # Stage 1: Build stage
 FROM base AS development

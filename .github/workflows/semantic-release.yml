@@ -44,8 +44,8 @@ permissions:
   contents: write # Required: create tags, GitHub releases, and commit changes (git plugin)
 
 env:
-  BUN_VERSION: '1.3.8'
-  NODE_VERSION: '22'
+  BUN_VERSION: '1.4.4'
+  NODE_VERSION: '26'
 
 jobs:
   release:
@@ -59,7 +59,7 @@ jobs:
       new-release-version: ${{ steps.semantic-release.outputs.new-release-version }}
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
@@ -70,7 +70,7 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
 
       - name: Setup Node.js for semantic-release
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
 

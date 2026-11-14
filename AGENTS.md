@@ -151,7 +151,7 @@ const myTemplate = new ResourceTemplateBuilder('file:///{path}')
 
 ## Architecture
 
-- **Runtime**: Bun ≥1.3.8
+- **Runtime**: Bun ≥1.4.4
 - **Build System**: Bun's built-in bundler
 - **Transport**: HTTP-based MCP server with Express.js and streaming support
 - **Authentication**: OAuth 2.0 proxy with Auth0, JWT tokens, session management
