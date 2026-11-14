@@ -70,6 +70,10 @@ jobs:
         startsWith(github.event.head_commit.message, 'bump') ||
         startsWith(github.event.head_commit.message, 'localize')
       )
+    # Called workflow can only use permissions granted here. id-token lets npm publish via OIDC trusted publishing.
+    permissions:
+      contents: write
+      id-token: write
     uses: ./.github/workflows/semantic-release.yml
     with:
       is-dev-release: true
