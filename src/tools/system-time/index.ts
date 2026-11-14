@@ -1,6 +1,7 @@
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { z } from 'zod';
 
 import { loggingContext, sendProgressNotification } from '@/core/server';
+import { INPUT_JSON_SCHEMA_OPTIONS } from '@/tools/jsonSchema';
 import {
   type Tool,
   ToolBuilder,
@@ -277,7 +278,10 @@ export const systemTimeTool: Tool<SystemTimeInput, SystemTimeOutput> =
       'Get the current system time in various formats with timezone support'
     )
     .inputSchema(
-      zodToJsonSchema(SystemTimeInputSchema) as typeof ToolInputSchema
+      z.toJSONSchema(
+        SystemTimeInputSchema,
+        INPUT_JSON_SCHEMA_OPTIONS
+      ) as unknown as typeof ToolInputSchema
     )
     .examples([
       {

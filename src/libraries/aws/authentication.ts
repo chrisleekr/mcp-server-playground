@@ -8,8 +8,7 @@ import { config } from '@/config/manager';
 import { loggingContext } from '@/core/server/http/context';
 
 export function getCredentials():
-  | AwsCredentialIdentityProvider
-  | AwsCredentialIdentity {
+  AwsCredentialIdentityProvider | AwsCredentialIdentity {
   if (config.tools.aws.profile !== null && config.tools.aws.profile !== '') {
     loggingContext.log('info', 'Getting credentials from SSO', {
       data: { profile: config.tools.aws.profile },
@@ -31,8 +30,7 @@ export function getCredentials():
 }
 
 export function getCredentialsForBedrock():
-  | AwsCredentialIdentityProvider
-  | AwsCredentialIdentity {
+  AwsCredentialIdentityProvider | AwsCredentialIdentity {
   if (
     config.tools.aws.bedrock.profile !== null &&
     config.tools.aws.bedrock.profile !== ''

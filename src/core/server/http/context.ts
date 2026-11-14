@@ -115,9 +115,7 @@ export const LoggingContext = (
         return;
       }
       const updatedContext = Object.assign({}, context, { [key]: value });
-      asyncLocalStorage.enterWith(
-        updatedContext as AsyncLocalStorageLoggingContext
-      );
+      asyncLocalStorage.enterWith(updatedContext);
     },
 
     getContextValue: <T>(key: string): T | undefined => {

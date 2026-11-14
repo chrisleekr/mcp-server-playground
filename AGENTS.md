@@ -151,7 +151,7 @@ const myTemplate = new ResourceTemplateBuilder('file:///{path}')
 
 ## Architecture
 
-- **Runtime**: Bun ≥1.3.8
+- **Runtime**: Bun ≥1.4.4
 - **Build System**: Bun's built-in bundler
 - **Transport**: HTTP-based MCP server with Express.js and streaming support
 - **Authentication**: OAuth 2.0 proxy with Auth0, JWT tokens, session management
@@ -190,7 +190,7 @@ Centralized in `src/config/` with Zod validation:
 Before submitting changes, run these programmatic checks:
 
 ```bash
-bun run lint          # ESLint with TypeScript rules
+bun run lint          # Oxlint with type-aware TypeScript rules
 bun run typecheck     # TypeScript compilation check
 bun run format        # Prettier formatting check
 bun test              # Bun test suite

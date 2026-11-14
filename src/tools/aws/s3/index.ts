@@ -1,8 +1,13 @@
 /* eslint-disable max-lines-per-function */
-import { zodToJsonSchema } from 'zod-to-json-schema';
+
+import { z } from 'zod';
 
 import { loggingContext, sendProgressNotification } from '@/core/server';
 import { listBuckets, listObjectsV2 } from '@/libraries/aws';
+import {
+  INPUT_JSON_SCHEMA_OPTIONS,
+  OUTPUT_JSON_SCHEMA_OPTIONS,
+} from '@/tools/jsonSchema';
 import {
   createStructuredContent,
   type Tool,
@@ -137,7 +142,7 @@ async function* executeAWSS3(
     // Create structured content for the new MCP spec
     const structuredOutput = createStructuredContent(
       output,
-      zodToJsonSchema(AWSS3OutputContentSchema),
+      z.toJSONSchema(AWSS3OutputContentSchema, OUTPUT_JSON_SCHEMA_OPTIONS),
       'json'
     );
 
@@ -196,8 +201,13 @@ export const awsS3Tool: Tool<AWSS3Input, AWSS3Output> = new ToolBuilder<
   AWSS3Output
 >('aws_s3')
   .description('Get the list of S3 buckets and objects')
-  .inputSchema(zodToJsonSchema(AWSS3InputSchema) as typeof ToolInputSchema)
-  .outputSchema(zodToJsonSchema(AWSS3OutputSchema))
+  .inputSchema(
+    z.toJSONSchema(
+      AWSS3InputSchema,
+      INPUT_JSON_SCHEMA_OPTIONS
+    ) as unknown as typeof ToolInputSchema
+  )
+  .outputSchema(z.toJSONSchema(AWSS3OutputSchema, OUTPUT_JSON_SCHEMA_OPTIONS))
   .examples([
     {
       description: 'Get the list of S3 buckets and objects',
@@ -226,8 +236,9 @@ export const awsS3Tool: Tool<AWSS3Input, AWSS3Output> = new ToolBuilder<
               },
             ],
           },
-          schema: zodToJsonSchema(
-            AWSS3OutputSchema.shape.structuredContent.shape.schema
+          schema: z.toJSONSchema(
+            AWSS3OutputSchema.shape.structuredContent.shape.schema,
+            OUTPUT_JSON_SCHEMA_OPTIONS
           ),
           format: 'json',
         },

@@ -94,8 +94,7 @@ export class ResourceRegistry {
   public findTemplateForUri(
     uri: string
   ):
-    | { template: ResourceTemplate; params: Record<string, string> }
-    | undefined {
+    { template: ResourceTemplate; params: Record<string, string> } | undefined {
     for (const [uriTemplate, template] of this.templates) {
       const params = this.matchUriTemplate(uriTemplate, uri);
       if (params !== null) {

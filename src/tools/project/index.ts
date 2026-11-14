@@ -1,9 +1,10 @@
 // TODO: Not yet implemented
 import fs from 'fs/promises';
-import zodToJsonSchema from 'zod-to-json-schema';
+import { z } from 'zod';
 
 import { config } from '@/config/manager';
 import { loggingContext, sendProgressNotification } from '@/core/server';
+import { INPUT_JSON_SCHEMA_OPTIONS } from '@/tools/jsonSchema';
 import {
   ToolBuilder,
   type ToolContext,
@@ -136,7 +137,12 @@ export const projectTool = new ToolBuilder<ProjectInput, ProjectOutput>(
   'project'
 )
   .description('Find keywords in the current project')
-  .inputSchema(zodToJsonSchema(ProjectInputSchema) as typeof ToolInputSchema)
+  .inputSchema(
+    z.toJSONSchema(
+      ProjectInputSchema,
+      INPUT_JSON_SCHEMA_OPTIONS
+    ) as unknown as typeof ToolInputSchema
+  )
   .examples([
     {
       input: {

@@ -1,6 +1,5 @@
 import { type Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { type Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { type InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import type express from 'express';
 import { z } from 'zod';
@@ -197,7 +196,7 @@ export class TransportManager {
       }
     );
 
-    await this.server.connect(transport as Transport);
+    await this.server.connect(transport);
 
     return transport;
   }

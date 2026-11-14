@@ -1,9 +1,10 @@
 /* eslint-disable max-lines-per-function */
 import { setTimeout } from 'node:timers/promises';
 
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { z } from 'zod';
 
 import { loggingContext, sendProgressNotification } from '@/core/server';
+import { INPUT_JSON_SCHEMA_OPTIONS } from '@/tools/jsonSchema';
 import {
   ToolBuilder,
   type ToolContext,
@@ -229,7 +230,12 @@ export const streamingTool = new ToolBuilder<StreamingInput, StreamingOutput>(
   'streaming'
 )
   .description('Simulate real-time streaming data with live updates')
-  .inputSchema(zodToJsonSchema(StreamingInputSchema) as typeof ToolInputSchema)
+  .inputSchema(
+    z.toJSONSchema(
+      StreamingInputSchema,
+      INPUT_JSON_SCHEMA_OPTIONS
+    ) as unknown as typeof ToolInputSchema
+  )
   .examples([
     {
       input: { dataType: 'metrics', count: 5, intervalMs: 1000 },

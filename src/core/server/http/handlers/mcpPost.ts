@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
 import { type StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import type express from 'express';
 
@@ -85,9 +84,7 @@ export function setupMCPPostHandler(
 
           // Connect the transport to the server
           loggingContext.log('debug', 'Connecting transport to server');
-          // Type assertion needed: SDK's StreamableHTTPServerTransport uses getter/setter
-          // for onclose with explicit undefined, incompatible with exactOptionalPropertyTypes
-          await transportManager.getServer().connect(transport as Transport);
+          await transportManager.getServer().connect(transport);
         } else {
           loggingContext.log(
             'error',
